@@ -1,0 +1,20 @@
+apiVersion: idp.local/v1
+kind: ServiceSpec
+metadata:
+  name: payments-api
+  owner: payments-team
+  tier: standard
+runtime:
+  image: ghcr.io/mohananarasimha/payments-api
+  tag: "1.2.0"
+  port: 80
+  healthPath: /healthz
+  metricsPath: /metrics
+sizing:
+  profile: small
+  minReplicas: 2
+  maxReplicas: 4
+  targetCPU: 70
+env:
+  LOG_LEVEL: info
+secretRefs: []

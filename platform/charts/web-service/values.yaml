@@ -1,0 +1,30 @@
+environment: staging
+
+metadata:
+  name: sample-service
+  owner: platform-team
+  tier: standard
+
+runtime:
+  image: ghcr.io/example/sample-service
+  tag: "1.0.0"
+  port: 8080
+  healthPath: /healthz
+  metricsPath: /metrics
+
+sizing:
+  profile: small
+  minReplicas: 1
+  maxReplicas: 2
+  targetCPU: 70
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi
+
+env: {}
+secretRefs: []

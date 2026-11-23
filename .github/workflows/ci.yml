@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  validate-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: "v4.0.5"
+
+      - name: Sync Python CLI dependencies
+        working-directory: platform/cli
+        run: uv sync --python 3.12 --extra dev
+
+      - name: Lint Python CLI (including security rules)
+        working-directory: platform/cli
+        run: uv run ruff check .
+
+      - name: Run CLI and policy unit/integration tests
+        working-directory: platform/cli
+        run: uv run pytest -v
+
+      - name: Lint golden-path Helm chart
+        run: helm lint platform/charts/web-service
+
+      - name: Validate sample service specification
+        run: uv run --project platform/cli idp validate services/payments-api/service.yaml --env all
+
+      - name: Verify rendered manifests have zero drift
+        run: |
+          uv run --project platform/cli idp render services/payments-api/service.yaml --env all --out-dir rendered
+          git diff --exit-code rendered/

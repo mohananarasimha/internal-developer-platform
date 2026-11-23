@@ -1,0 +1,31 @@
+environment: prod
+metadata:
+  name: payments-api
+  owner: payments-team
+  tier: critical
+runtime:
+  image: ghcr.io/mohananarasimha/payments-api
+  tag: 1.2.0
+  port: 8080
+  healthPath: /healthz
+  metricsPath: /metrics
+sizing:
+  profile: medium
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPU: 65
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+env:
+  APP_ENV: prod
+  LEDGER_REGION: us-east-1
+  LOG_LEVEL: info
+  PAYMENT_TIMEOUT_MS: '2500'
+secretRefs:
+- payments-db-credentials
+- payments-signing-keys

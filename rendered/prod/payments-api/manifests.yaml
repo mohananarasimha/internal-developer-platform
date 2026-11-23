@@ -1,0 +1,191 @@
+---
+# Source: web-service/templates/pdb.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: payments-api
+  namespace: prod
+  labels:
+    app.kubernetes.io/name: payments-api
+    app.kubernetes.io/instance: payments-api
+    app.kubernetes.io/managed-by: idp-cli
+    idp.local/owner: payments-team
+    idp.local/tier: critical
+    idp.local/environment: prod
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: payments-api
+      app.kubernetes.io/instance: payments-api
+---
+# Source: web-service/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: payments-api
+  namespace: prod
+  labels:
+    app.kubernetes.io/name: payments-api
+    app.kubernetes.io/instance: payments-api
+    app.kubernetes.io/managed-by: idp-cli
+    idp.local/owner: payments-team
+    idp.local/tier: critical
+    idp.local/environment: prod
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: payments-api
+    app.kubernetes.io/instance: payments-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+---
+# Source: web-service/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payments-api
+  namespace: prod
+  labels:
+    app.kubernetes.io/name: payments-api
+    app.kubernetes.io/instance: payments-api
+    app.kubernetes.io/managed-by: idp-cli
+    idp.local/owner: payments-team
+    idp.local/tier: critical
+    idp.local/environment: prod
+spec:
+  replicas: 2
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: payments-api
+      app.kubernetes.io/instance: payments-api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: payments-api
+        app.kubernetes.io/instance: payments-api
+        app.kubernetes.io/managed-by: idp-cli
+        idp.local/owner: payments-team
+        idp.local/tier: critical
+        idp.local/environment: prod
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: payments-api
+          image: "ghcr.io/mohananarasimha/payments-api:1.2.0"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: APP_ENV
+              value: "prod"
+            - name: LEDGER_REGION
+              value: "us-east-1"
+            - name: LOG_LEVEL
+              value: "info"
+            - name: PAYMENT_TIMEOUT_MS
+              value: "2500"
+          envFrom:
+            - secretRef:
+                name: payments-db-credentials
+            - secretRef:
+                name: payments-signing-keys
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 2
+            timeoutSeconds: 2
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+# Source: web-service/templates/hpa.yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: payments-api
+  namespace: prod
+  labels:
+    app.kubernetes.io/name: payments-api
+    app.kubernetes.io/instance: payments-api
+    app.kubernetes.io/managed-by: idp-cli
+    idp.local/owner: payments-team
+    idp.local/tier: critical
+    idp.local/environment: prod
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: payments-api
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 65
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300

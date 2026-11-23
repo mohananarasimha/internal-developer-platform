@@ -1,0 +1,6 @@
+apiVersion: v2
+name: web-service
+description: Standardized golden-path Helm chart for Internal Developer Platform web services
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

@@ -1,0 +1,14 @@
+{{- if ge (int .Values.sizing.minReplicas) 2 }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "web-service.fullname" . }}
+  namespace: {{ .Values.environment }}
+  labels:
+    {{- include "web-service.labels" . | nindent 4 }}
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      {{- include "web-service.selectorLabels" . | nindent 6 }}
+{{- end }}

@@ -1,0 +1,86 @@
+# Internal Developer Platform (Golden Path)
+
+A declarative, zero-operator Kubernetes golden path that converts a concise developer-authored `service.yaml` into policy-validated, security-hardened Helm/Kubernetes manifests for GitOps delivery.
+
+## Control & Data Flow
+
+```mermaid
+flowchart LR
+    A[services/&lt;svc&gt;/service.yaml] --> B[idp CLI<br/>Pydantic Schema + Policy Guardrails]
+    B -->|exit 1 on violation| X[Fail Fast in Local Dev / CI]
+    B -->|valid| C[Helm Template<br/>platform/charts/web-service]
+    C --> D[rendered/&lt;env&gt;/&lt;svc&gt;/<br/>values.yaml + manifests.yaml]
+    D --> E[GitHub Actions CI<br/>ruff, pytest, helm lint, drift check]
+    E --> F[Argo CD GitOps Sync<br/>local kind: staging &amp; prod]
+    F --> G[Health &amp; /metrics Verification]
+```
+
+## Developer Interface vs. Platform Defaults
+
+| Exposed in `service.yaml` (Developer Intent) | Enforced by Platform (Hidden Safe Defaults) |
+| --- | --- |
+| `metadata`: `name`, `owner`, `tier` (`critical` \| `standard`) | Standard `app.kubernetes.io/*` + `idp.local/*` ownership labels |
+| `runtime`: `image`, immutable `tag` (semver or `sha256:`), non-privileged `port` (`1024–65535`), `healthPath`, `metricsPath` | `runAsNonRoot: true`, `runAsUser: 10001`, `readOnlyRootFilesystem: true`, `allowPrivilegeEscalation: false`, `capabilities.drop: [ALL]`, `seccompProfile: RuntimeDefault`, `automountServiceAccountToken: false` |
+| `sizing`: `profile` (`small` \| `medium` \| `large`), `minReplicas`, `maxReplicas`, `targetCPU` (`50–90`) | Deterministic CPU/memory requests & limits; `RollingUpdate` with `maxUnavailable: 0`; `PodDisruptionBudget` (`minAvailable: 1`) when `minReplicas >= 2`; `HPA` with `scaleDown.stabilizationWindowSeconds: 300` |
+| `env` (non-secret key/value pairs) + `secretRefs` (K8s Secret names) | Blocks secret-like keys (`PASSWORD`, `SECRET`, `TOKEN`, `API_KEY`, `PRIVATE_KEY`, `AWS_SECRET`) and credential patterns in `env`; mounts `secretRefs` via `envFrom` |
+| `environments.staging` / `environments.prod` overrides | `prod` enforces `minReplicas >= 2` (and critical-tier HA + PDB) |
+
+### Deterministic Sizing Profiles
+
+| Profile | Requests (CPU / Mem) | Limits (CPU / Mem) |
+| --- | --- | --- |
+| `small` | `100m` / `128Mi` | `250m` / `256Mi` |
+| `medium` | `250m` / `256Mi` | `500m` / `512Mi` |
+| `large` | `500m` / `512Mi` | `1000m` / `1Gi` |
+
+## Repository Structure
+
+```text
+platform/
+  cli/                    # Python 3.11+ idp CLI (schema, policy, renderer, pytest)
+  charts/web-service/     # Standardized golden-path Helm chart
+services/
+  payments-api/           # Sample golden-path service.yaml (staging + prod)
+rendered/
+  staging/payments-api/   # Deterministic rendered Helm values & K8s manifests
+  prod/payments-api/      # Deterministic rendered Helm values & K8s manifests
+experiments/
+  01-config-validation/   # Guardrail proof + invalid fixtures
+```
+
+## Quick Start
+
+```bash
+# Install CLI + dev tools
+make sync
+
+# Run full validation, lint, test, helm lint, and render drift check
+make check
+
+# Inspect CLI output on valid and invalid configs
+uv run --project platform/cli idp validate services/payments-api/service.yaml --env all
+uv run --project platform/cli idp validate experiments/01-config-validation/invalid-latest-tag.yaml --format json
+```
+
+## Controlled Platform Experiments
+
+| # | Experiment | Status | Summary |
+| --- | --- | --- | --- |
+| 01 | [Config Validation & Policy Guardrails](experiments/01-config-validation/README.md) | **Complete** | Proves valid config passes (`exit 0`), 4 invalid fixtures fail with exact violation codes (`exit 1`), and parse errors isolate to `exit 2`. |
+| 02 | Healthy vs. Failed Deployment (`ImagePullBackOff` & Probe Failure) | Planned | Prove `maxUnavailable: 0` protects live traffic while Argo CD surfaces `Degraded` state on local `kind`. |
+| 03 | Fixed Replicas vs. HPA Under Synthetic Load | Planned | Compare fixed replica count against HPA scaling and stabilization window under synthetic CPU load. |
+| 04 | Release Promotion vs. GitOps Rollback | Planned | Promote `v1 -> broken v2`, revert in Git, and measure Argo CD automatic recovery time. |
+
+## Architecture Tradeoffs
+
+- **Render-time CLI over Kubernetes Operator**: Rendering manifests into `rendered/` produces auditable Git diffs, uses standard Helm/Kubernetes primitives, and avoids custom controller operational blast radius.
+- **No Backstage clone / No Service Mesh**: Focuses strictly on the declarative contract, policy boundary, and GitOps control loop rather than UI scaffolding or L7 proxy overhead.
+- **Staging vs. Prod Parity**: A single `service.yaml` defines shared runtime intent while environment overlays control sizing and non-secret config, keeping environment drift explicit and reviewable.
+
+## Security Model & Limitations
+
+- **Secrets Boundary**: Secret values never enter Git; only Kubernetes `Secret` object references (`secretRefs`) are declared. Secret provisioning happens out-of-band in the cluster (see `SECURITY.md`).
+- **Known Limitations**:
+  - Current milestone validates and renders deterministic Kubernetes manifests; local `kind` + Argo CD manifests and Experiments 02–04 are scheduled next.
+  - No custom escape-hatch Helm override block is exposed yet to keep security defaults strictly non-overridable.
+  - CPU-only HPA targeting (`targetCPU`); custom/RPS metrics require a metrics adapter outside this baseline scope.
