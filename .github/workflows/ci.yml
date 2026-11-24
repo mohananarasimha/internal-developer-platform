@@ -30,13 +30,28 @@ jobs:
         working-directory: platform/cli
         run: uv sync --python 3.12 --extra dev
 
-      - name: Lint Python CLI (including security rules)
-        working-directory: platform/cli
-        run: uv run ruff check .
+      - name: Lint Python CLI and sample app (including security rules)
+        run: |
+          uv run --directory platform/cli ruff check .
+          uv run --project platform/cli ruff check --config platform/cli/pyproject.toml apps/payments-api
 
       - name: Run CLI and policy unit/integration tests
         working-directory: platform/cli
         run: uv run pytest -v
+
+      - name: Run sample app unit tests
+        run: uv run --project platform/cli pytest -v apps/payments-api/tests/test_app.py
+
+      - name: Validate GitOps Argo CD YAML syntax
+        run: |
+          uv run --project platform/cli python -c '
+          from pathlib import Path
+          import yaml
+          for path in sorted(Path("gitops/argocd").glob("*.yaml")):
+              docs = [d for d in yaml.safe_load_all(path.read_text(encoding="utf-8")) if d is not None]
+              assert docs, f"No YAML documents found in {path}"
+              print(f"OK {path} ({len(docs)} document(s))")
+          '
 
       - name: Lint golden-path Helm chart
         run: helm lint platform/charts/web-service

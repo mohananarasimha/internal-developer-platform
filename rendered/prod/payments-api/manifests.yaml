@@ -92,7 +92,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: payments-api
-          image: "ghcr.io/mohananarasimha/payments-api:1.2.0"
+          image: "local/payments-api:1.0.0"
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -101,6 +101,8 @@ spec:
           env:
             - name: APP_ENV
               value: "prod"
+            - name: APP_VERSION
+              value: "1.0.0"
             - name: LEDGER_REGION
               value: "us-east-1"
             - name: LOG_LEVEL

@@ -36,9 +36,14 @@ flowchart LR
 ## Repository Structure
 
 ```text
+apps/
+  payments-api/           # Minimal stdlib HTTP service (/ , /healthz, /metrics) + non-root Dockerfile
 platform/
   cli/                    # Python 3.11+ idp CLI (schema, policy, renderer, pytest)
   charts/web-service/     # Standardized golden-path Helm chart
+  kind/                   # Local kind cluster config, bootstrap.sh, teardown.sh
+gitops/
+  argocd/                 # Restricted-PSS namespaces and GitOps ApplicationSet
 services/
   payments-api/           # Sample golden-path service.yaml (staging + prod)
 rendered/
@@ -46,6 +51,7 @@ rendered/
   prod/payments-api/      # Deterministic rendered Helm values & K8s manifests
 experiments/
   01-config-validation/   # Guardrail proof + invalid fixtures
+  02-deployment-health/   # Healthy vs. failed rollout experiment & runner script
 ```
 
 ## Quick Start
@@ -67,7 +73,7 @@ uv run --project platform/cli idp validate experiments/01-config-validation/inva
 | # | Experiment | Status | Summary |
 | --- | --- | --- | --- |
 | 01 | [Config Validation & Policy Guardrails](experiments/01-config-validation/README.md) | **Complete** | Proves valid config passes (`exit 0`), 4 invalid fixtures fail with exact violation codes (`exit 1`), and parse errors isolate to `exit 2`. |
-| 02 | Healthy vs. Failed Deployment (`ImagePullBackOff` & Probe Failure) | Planned | Prove `maxUnavailable: 0` protects live traffic while Argo CD surfaces `Degraded` state on local `kind`. |
+| 02 | [Healthy vs. Failed Deployment (`ImagePullBackOff` & Probe Failure)](experiments/02-deployment-health/README.md) | **Complete** | Proved `maxUnavailable: 0` and probes kept `47/47` (`100%`) live requests `200 OK` under both `FAIL_HEALTH=true` (`503`) and `ImagePullBackOff` (`9.9.9-missing`) under `restricted` PSS on local `kind`, with `0s` recovery. |
 | 03 | Fixed Replicas vs. HPA Under Synthetic Load | Planned | Compare fixed replica count against HPA scaling and stabilization window under synthetic CPU load. |
 | 04 | Release Promotion vs. GitOps Rollback | Planned | Promote `v1 -> broken v2`, revert in Git, and measure Argo CD automatic recovery time. |
 
@@ -81,6 +87,6 @@ uv run --project platform/cli idp validate experiments/01-config-validation/inva
 
 - **Secrets Boundary**: Secret values never enter Git; only Kubernetes `Secret` object references (`secretRefs`) are declared. Secret provisioning happens out-of-band in the cluster (see `SECURITY.md`).
 - **Known Limitations**:
-  - Current milestone validates and renders deterministic Kubernetes manifests; local `kind` + Argo CD manifests and Experiments 02–04 are scheduled next.
+  - Current milestone validates/renders deterministic manifests, enforces `restricted` PSS on local `kind`, and proves Experiments 01–02; Experiments 03 (HPA under load) and 04 (GitOps rollback) are scheduled next.
   - No custom escape-hatch Helm override block is exposed yet to keep security defaults strictly non-overridable.
   - CPU-only HPA targeting (`targetCPU`); custom/RPS metrics require a metrics adapter outside this baseline scope.
