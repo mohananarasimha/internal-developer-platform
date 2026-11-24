@@ -34,6 +34,26 @@ def test_valid_payments_api_spec_passes() -> None:
     assert prod.sizing.minReplicas == 2
     assert prod.sizing.maxReplicas == 6
     assert prod.env["APP_ENV"] == "prod"
+    assert prod.runtime.healthPath == "/healthz"
+    assert prod.runtime.livenessPath == "/livez"
+
+
+def test_invalid_liveness_path_rejected() -> None:
+    raw = {
+        "apiVersion": "idp.local/v1",
+        "kind": "ServiceSpec",
+        "metadata": {"name": "checkout-api", "owner": "checkout-team", "tier": "standard"},
+        "runtime": {
+            "image": "local/checkout-api",
+            "tag": "1.0.0",
+            "port": 8080,
+            "livenessPath": "livez-missing-slash",
+        },
+        "sizing": {"profile": "small", "minReplicas": 2, "maxReplicas": 4, "targetCPU": 70},
+    }
+    result = validate_spec_dict(raw, environments=("prod",))
+    assert result.valid is False
+    assert {v.code for v in result.violations} == {"IDP_PATH_INVALID"}
 
 
 @pytest.mark.parametrize(

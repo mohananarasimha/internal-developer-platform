@@ -74,24 +74,34 @@ def test_root_healthz_and_metrics_healthy() -> None:
         assert h_status == 200
         assert json.loads(h_body)["status"] == "ok"
 
+        l_status, _, l_body = _get(port, "/livez")
+        assert l_status == 200
+        assert json.loads(l_body) == {"status": "alive", "service": "payments-api"}
+
         m_status, m_ctype, m_body = _get(port, "/metrics")
         assert m_status == 200
         assert "text/plain" in m_ctype
         assert "payments_api_up 1" in m_body
         assert 'payments_api_requests_total{path="/",status="200"} 1' in m_body
         assert 'payments_api_requests_total{path="/healthz",status="200"} 1' in m_body
+        assert 'payments_api_requests_total{path="/livez",status="200"} 1' in m_body
 
 
-def test_healthz_returns_503_when_fail_health_enabled() -> None:
+def test_healthz_returns_503_while_livez_stays_200_when_fail_health_enabled() -> None:
     with running_server(fail_health=True) as port:
         h_status, _, h_body = _get(port, "/healthz")
         assert h_status == 503
         assert json.loads(h_body)["status"] == "unhealthy"
 
+        l_status, _, l_body = _get(port, "/livez")
+        assert l_status == 200
+        assert json.loads(l_body) == {"status": "alive", "service": "payments-api"}
+
         m_status, _, m_body = _get(port, "/metrics")
         assert m_status == 200
         assert "payments_api_up 0" in m_body
         assert 'payments_api_requests_total{path="/healthz",status="503"} 1' in m_body
+        assert 'payments_api_requests_total{path="/livez",status="200"} 1' in m_body
 
 
 def test_unknown_route_returns_404() -> None:

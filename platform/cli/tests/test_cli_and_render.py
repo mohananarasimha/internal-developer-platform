@@ -113,6 +113,9 @@ def test_cli_render_produces_hardened_k8s_manifests_deterministically(tmp_path: 
         {"secretRef": {"name": "payments-db-credentials"}},
         {"secretRef": {"name": "payments-signing-keys"}},
     ]
+    assert container["startupProbe"]["httpGet"]["path"] == "/livez"
+    assert container["livenessProbe"]["httpGet"]["path"] == "/livez"
+    assert container["readinessProbe"]["httpGet"]["path"] == "/healthz"
 
     annotations = deployment["spec"]["template"]["metadata"]["annotations"]
     assert annotations["prometheus.io/scrape"] == "true"

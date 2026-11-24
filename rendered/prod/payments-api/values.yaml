@@ -8,6 +8,7 @@ runtime:
   tag: 1.0.0
   port: 8080
   healthPath: /healthz
+  livenessPath: /livez
   metricsPath: /metrics
 sizing:
   profile: medium

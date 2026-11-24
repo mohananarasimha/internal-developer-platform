@@ -117,6 +117,7 @@ class RuntimeConfig(BaseModel):
     tag: str
     port: int
     healthPath: str = "/healthz"
+    livenessPath: str = "/livez"
     metricsPath: str = "/metrics"
 
     @field_validator("image")
@@ -160,7 +161,7 @@ class RuntimeConfig(BaseModel):
     def validate_port(cls, value: int) -> int:
         return _validate_port(value)
 
-    @field_validator("healthPath", "metricsPath")
+    @field_validator("healthPath", "livenessPath", "metricsPath")
     @classmethod
     def validate_paths(cls, value: str) -> str:
         return _validate_http_path(value)

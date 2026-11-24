@@ -48,6 +48,7 @@ def build_helm_values(resolved: ResolvedServiceConfig) -> dict[str, Any]:
             "tag": resolved.runtime.tag,
             "port": resolved.runtime.port,
             "healthPath": resolved.runtime.healthPath,
+            "livenessPath": resolved.runtime.livenessPath,
             "metricsPath": resolved.runtime.metricsPath,
         },
         "sizing": {

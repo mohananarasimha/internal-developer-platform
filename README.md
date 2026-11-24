@@ -20,7 +20,7 @@ flowchart LR
 | Exposed in `service.yaml` (Developer Intent) | Enforced by Platform (Hidden Safe Defaults) |
 | --- | --- |
 | `metadata`: `name`, `owner`, `tier` (`critical` \| `standard`) | Standard `app.kubernetes.io/*` + `idp.local/*` ownership labels |
-| `runtime`: `image`, immutable `tag` (semver or `sha256:`), non-privileged `port` (`1024–65535`), `healthPath`, `metricsPath` | `runAsNonRoot: true`, `runAsUser: 10001`, `readOnlyRootFilesystem: true`, `allowPrivilegeEscalation: false`, `capabilities.drop: [ALL]`, `seccompProfile: RuntimeDefault`, `automountServiceAccountToken: false` |
+| `runtime`: `image`, immutable `tag` (semver or `sha256:`), non-privileged `port` (`1024–65535`), `healthPath` (readiness, default `/healthz`), `livenessPath` (startup + liveness, default `/livez`), `metricsPath` | `runAsNonRoot: true`, `runAsUser: 10001`, `readOnlyRootFilesystem: true`, `allowPrivilegeEscalation: false`, `capabilities.drop: [ALL]`, `seccompProfile: RuntimeDefault`, `automountServiceAccountToken: false`; split readiness (`/healthz`) vs. startup/liveness (`/livez`) probes |
 | `sizing`: `profile` (`small` \| `medium` \| `large`), `minReplicas`, `maxReplicas`, `targetCPU` (`50–90`) | Deterministic CPU/memory requests & limits; `RollingUpdate` with `maxUnavailable: 0`; `PodDisruptionBudget` (`minAvailable: 1`) when `minReplicas >= 2`; `HPA` with `scaleDown.stabilizationWindowSeconds: 300` |
 | `env` (non-secret key/value pairs) + `secretRefs` (K8s Secret names) | Blocks secret-like keys (`PASSWORD`, `SECRET`, `TOKEN`, `API_KEY`, `PRIVATE_KEY`, `AWS_SECRET`) and credential patterns in `env`; mounts `secretRefs` via `envFrom` |
 | `environments.staging` / `environments.prod` overrides | `prod` enforces `minReplicas >= 2` (and critical-tier HA + PDB) |
@@ -37,7 +37,7 @@ flowchart LR
 
 ```text
 apps/
-  payments-api/           # Minimal stdlib HTTP service (/ , /healthz, /metrics) + non-root Dockerfile
+  payments-api/           # Minimal stdlib HTTP service (/, /livez, /healthz, /metrics) + non-root Dockerfile
 platform/
   cli/                    # Python 3.11+ idp CLI (schema, policy, renderer, pytest)
   charts/web-service/     # Standardized golden-path Helm chart
