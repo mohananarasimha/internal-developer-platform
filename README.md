@@ -73,7 +73,7 @@ uv run --project platform/cli idp validate experiments/01-config-validation/inva
 | # | Experiment | Status | Summary |
 | --- | --- | --- | --- |
 | 01 | [Config Validation & Policy Guardrails](experiments/01-config-validation/README.md) | **Complete** | Proves valid config passes (`exit 0`), 4 invalid fixtures fail with exact violation codes (`exit 1`), and parse errors isolate to `exit 2`. |
-| 02 | [Healthy vs. Failed Deployment (`ImagePullBackOff` & Probe Failure)](experiments/02-deployment-health/README.md) | **Complete** | Proved `maxUnavailable: 0` and probes kept `47/47` (`100%`) live requests `200 OK` under both `FAIL_HEALTH=true` (`503`) and `ImagePullBackOff` (`9.9.9-missing`) under `restricted` PSS on local `kind`, with `0s` recovery. |
+| 02 | [Failed Rollouts Behind a Service (Readiness vs. Liveness)](experiments/02-deployment-health/README.md) | **Complete** | In-cluster traffic through the Service stayed at 625/625 OK during readiness-failure and bad-image rollouts on `kind`; the failing pod stayed not-ready with 0 restarts. Pointing liveness at `/healthz` instead caused 2 restarts in 90 s. |
 | 03 | Fixed Replicas vs. HPA Under Synthetic Load | Planned | Compare fixed replica count against HPA scaling and stabilization window under synthetic CPU load. |
 | 04 | Release Promotion vs. GitOps Rollback | Planned | Promote `v1 -> broken v2`, revert in Git, and measure Argo CD automatic recovery time. |
 

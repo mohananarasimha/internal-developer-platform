@@ -1,50 +1,55 @@
-# Experiment 02: Healthy vs. Failed Deployment (`maxUnavailable: 0` & Probes)
+# Experiment 02: Failed Rollouts Behind a Service (Readiness vs. Liveness)
 
 ## QUESTION
-When a developer rolls out a broken application revision—either one failing `/healthz` readiness checks or referencing an unpullable container image—do the platform's enforced rolling-update (`maxUnavailable: 0`, `maxSurge: 1`), `PodDisruptionBudget`, and probe defaults preserve 100% availability of healthy `v1` pods while stalling the broken rollout?
+
+When a broken revision is rolled out, do the golden-path defaults (`maxUnavailable: 0`, `maxSurge: 1`, readiness on `/healthz`, startup and liveness on `/livez`) keep real Service traffic at 100% success, and what changes if liveness is pointed at the same endpoint as readiness?
 
 ## HYPOTHESIS
-In the `prod` namespace (`minReplicas: 2`, `maxUnavailable: 0`, `maxSurge: 1`, `PodDisruptionBudget` `minAvailable: 1`, Kubernetes `restricted` Pod Security Admission):
-1. A healthy `local/payments-api:1.0.0` deployment will schedule under `restricted` PSS, converge to `2/2` Ready pods, and serve `100%` `200 OK` responses on `/`, `/healthz`, and `/metrics`.
-2. Rolling out a revision with `FAIL_HEALTH=true` will create 1 surge pod that fails readiness (`0/1 Ready` with `Unhealthy` probe events), stall the rollout, and keep both `v1` pods serving `100%` `200 OK` traffic.
-3. Rolling out a nonexistent image tag (`local/payments-api:9.9.9-missing`) will stall in `ErrImagePull`/`ImagePullBackOff` on the surge pod while keeping both `v1` pods serving `100%` `200 OK` traffic.
+
+1. A surge pod that fails readiness is never added to the Service's ready endpoints, so in-cluster clients see no errors. Because liveness checks `/livez`, the pod is not restarted. The rollout stalls and reports `ProgressDeadlineExceeded`.
+2. An unpullable image stalls the same way (`ErrImagePull` / `ImagePullBackOff`) with no client errors.
+3. If liveness also checks `/healthz`, a readiness failure turns into restart churn, which is the usual probe anti-pattern. Traffic is still protected by readiness, but the kubelet keeps killing the pod.
 
 ## SETUP
-- **Cluster**: Local `kind` cluster (`idp-local`, 1 control-plane + 1 worker) provisioned via `./platform/kind/bootstrap.sh`.
-- **Namespace**: `prod` with `pod-security.kubernetes.io/enforce: restricted`.
-- **Manifests**: `rendered/prod/payments-api/manifests.yaml` (rendered by `idp render services/payments-api/service.yaml --env prod`).
-- **Execution script**: `./experiments/02-deployment-health/run-experiment.sh`.
+
+- kind cluster `idp-local` (Kubernetes `v1.35.0`, 1 control plane + 1 worker) from `platform/kind/bootstrap.sh`. Argo CD is not installed for this experiment, so self-heal does not undo the injected faults.
+- `prod` namespace with Pod Security Admission `enforce: restricted`. Workload is `rendered/prod/payments-api/manifests.yaml`: 2 replicas, PDB `minAvailable: 1`, `maxUnavailable: 0`, `maxSurge: 1`.
+- `payments-api` app: `/livez` always returns 200 while the process serves. `/healthz` returns 503 when `FAIL_HEALTH=true`.
+- **Traffic goes through the Service, from inside the cluster.** A client pod in `default` (same `local/payments-api` image, restricted security context, no external pulls) calls `http://payments-api.prod.svc.cluster.local/` every 200 ms and prints per-second counts of 2xx, non-2xx and connection errors. Earlier versions used `kubectl port-forward svc/...`, which pins to one pod and bypasses endpoint readiness, so they could not test this question.
+- During each fault the script samples EndpointSlice ready/not-ready counts and per-pod readiness and restarts every 5–10 s. `progressDeadlineSeconds` is lowered to 25–30 s so the stall is reported within the window.
+- Rollback replaces the Deployment with the rendered spec and waits until only the baseline pods remain.
+
+Run it: `./experiments/02-deployment-health/run-experiment.sh`.
 
 ## VARIABLE
-Deployment failure mode injected into `Deployment/payments-api` in `prod`:
-- **Case A (Baseline)**: Healthy `local/payments-api:1.0.0` (`FAIL_HEALTH` unset).
-- **Case B (Readiness Failure)**: `FAIL_HEALTH=true` injected into `Deployment/payments-api` while sending live HTTP requests to `svc/payments-api`.
-- **Case C (Image Pull Failure)**: Image updated to `local/payments-api:9.9.9-missing` while sending live HTTP requests to `svc/payments-api`.
+
+The injected fault: none (A), `FAIL_HEALTH=true` (B), image `local/payments-api:9.9.9-missing` (C), `FAIL_HEALTH=true` with liveness changed to `/healthz` (D, contrast).
 
 ## METRIC
-- Ready `v1` pod count during rollout failure (target: `2/2` maintained)
-- Failing surge pod state and Kubernetes event reason (`Unhealthy`, `ErrImagePull` / `ImagePullBackOff`)
-- `PodDisruptionBudget` status (`currentHealthy`, `disruptionsAllowed`)
-- Live HTTP request success rate against `svc/payments-api` during each failure window (`200 OK` / total requests)
-- Recovery time back to `2/2` Ready after restoring `rendered/prod/payments-api/manifests.yaml`
+
+Client success rate through the Service, EndpointSlice ready/not-ready counts, surge-pod restarts, Deployment `Progressing` condition, and time from rollback until only baseline pods remain.
 
 ## RESULT
 
-Measured live on local `kind` (`kindest/node:v1.35.0`, 1 control-plane + 1 worker, `prod` namespace with `pod-security.kubernetes.io/enforce: restricted`) running `./platform/kind/bootstrap.sh` and `./experiments/02-deployment-health/run-experiment.sh`:
+Measured live (second full run after fixing the rollback helper; the first run showed the same traffic and endpoint results):
 
-| Case | Ready `v1` Pods | Surge Pod State | Observed Events | Traffic Success (`200 OK` / Total) | Rollout Outcome |
-| --- | --- | --- | --- | --- | --- |
-| Case A — Healthy Baseline (`1.0.0`) | `2/2` (`1/1 Running`) | N/A | Clean startup in `17s` | `20/20` (`100%`) | `successfully rolled out` |
-| Case B — Probe Failure (`FAIL_HEALTH=true`) | `2/2` (`1/1 Running`) | `0/1 Running` (`payments-api-6b759fc584-5rkxp`) | `Warning Unhealthy`: `Startup probe failed: HTTP probe failed with statuscode: 503` | `47/47` (`100%`, `0` fail) | Stalled (`rollout status` exit `1`) |
-| Case C — Bad Image (`9.9.9-missing`) | `2/2` (`1/1 Running`) | `0/1 ImagePullBackOff` (`payments-api-6d99ff8469-hm45l`) | `ErrImagePull` / `ImagePullBackOff` | `47/47` (`100%`, `0` fail) | Stalled (`rollout status` exit `1`) |
-| Recovery — Restore `1.0.0` | `2/2` (`1/1 Running`) | Broken surge pod `Terminating` | Immediate convergence | `100%` uninterrupted | Recovered in `0s` |
+| Case | EndpointSlice (ready / not ready) | Surge pod | Surge restarts | Client requests OK | Rollout |
+|---|---|---|---|---|---|
+| A — healthy | 2 / 0 | — | — | smoke `/`, `/livez`, `/healthz`, `/metrics` all 200 | complete |
+| B — readiness fails | 2 / 1 for all 8 samples (40 s) | `0/1 Running` | **0** | **225 / 225** | `ProgressDeadlineExceeded`, `rollout status` exit 1 |
+| C — bad image | 2 / 1 for all 6 samples (30 s) | `ErrImagePull` → `ImagePullBackOff` | 0 | **175 / 175** | `ProgressDeadlineExceeded`, `rollout status` exit 1 |
+| D — liveness on `/healthz` | 2 / 1 for all 9 samples (90 s) | `0/1 Running` | **2** (at ~50 s and ~80 s) | **450 / 450** | stalled |
 
-- **Pod Security Admission (`restricted`) verification**: Passed admission with zero warnings on `prod` (`pod-security.kubernetes.io/enforce: restricted`).
-- **`PodDisruptionBudget` observed status**: `payments-api` — `MIN AVAILABLE: 1`, `ALLOWED DISRUPTIONS: 1` (`2/2` healthy).
-- **`/metrics` scrape verification**: Returned `payments_api_up 1`, `payments_api_requests_total{path="/",status="200"} 20`, and `payments_api_requests_total{path="/healthz",status="200"} 4`.
+- Rollback to baseline-only pods took 3 s (B), 1 s (C) and 3 s (final). This is fast because the old ReplicaSet was never scaled down (`maxUnavailable: 0`). Rollback only deletes the surge pod. It is not a measure of recovering from an outage; there was no outage.
+- Events: B shows only `Readiness probe failed: ... 503` for the surge pod. D shows `Liveness probe failed: ... 503` followed by restarts.
+- The Deployment stayed `Available=True` (`MinimumReplicasAvailable`) in every case.
 
 ## INTERPRETATION
-Both injected failure classes—application-level health regressions (`FAIL_HEALTH=true` -> HTTP `503`) and artifact/registry mistakes (`local/payments-api:9.9.9-missing` -> `ImagePullBackOff`)—were completely isolated to the single surge pod (`maxSurge: 1`). Because the platform enforces `maxUnavailable: 0` alongside startup and readiness probes, Kubernetes refused to terminate either healthy `v1` pod or add the failing surge pod to Service endpoints, preserving `47/47` (`100%`) `200 OK` responses during both failure windows. Reverting to `1.0.0` converged in `0s` because the healthy `v1` ReplicaSet was never scaled down.
 
-## ENGINEERING LESSON
-Platform defaults turn deployment failures from user-facing outages into contained, observable rollout stalls. Relying on developers to manually author `maxUnavailable: 0`, startup/readiness probes, `PodDisruptionBudget`, and `restricted` Pod Security Admission `securityContext` leads to inconsistent drift across services; encoding them centrally in the golden-path chart ensures every service inherits zero-downtime failure containment by default.
+- Readiness gating works through the Service: the failing pod was listed as not ready in the EndpointSlice and received no client traffic, so 625 requests across B and C had zero errors.
+- Splitting liveness (`/livez`) from readiness (`/healthz`) is what kept the failing pod from restarting in B. In D the only change was the liveness path, and the same fault produced 2 restarts in 90 s. Users were still protected by readiness, but in a real dependency outage a coupled liveness probe restarts every pod that cannot reach the dependency, which turns a partial failure into restart churn and cold starts.
+- `maxUnavailable: 0` + `maxSurge: 1` limit a bad revision to one extra pod. The rollout stalls visibly (`ProgressDeadlineExceeded`) instead of replacing healthy pods.
+
+## LESSON
+
+Readiness answers "should this pod get traffic?"; liveness answers "is this process wedged and worth killing?". Point them at different endpoints. Verify rollout safety with traffic that goes through the Service, because `port-forward` bypasses exactly the mechanism under test.
