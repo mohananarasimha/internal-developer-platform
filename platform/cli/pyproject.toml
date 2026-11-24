@@ -39,4 +39,4 @@ src = ["src", "tests"]
 select = ["E", "F", "I", "UP", "B", "S", "SIM"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["S101"]
+"**/tests/**/*.py" = ["S101"]

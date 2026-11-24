@@ -1,0 +1,48 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: idp-services
+  namespace: argocd
+spec:
+  goTemplate: false
+  generators:
+    - git:
+        repoURL: https://github.com/mohananarasimha/internal-developer-platform.git
+        revision: main
+        directories:
+          - path: rendered/*/*
+  template:
+    metadata:
+      name: "{{path[1]}}-{{path[2]}}"
+      labels:
+        idp.local/environment: "{{path[1]}}"
+        idp.local/service: "{{path[2]}}"
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/mohananarasimha/internal-developer-platform.git
+        targetRevision: main
+        path: "rendered/{{path[1]}}/{{path[2]}}"
+        directory:
+          include: "manifests.yaml"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "{{path[1]}}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=false
+          - ApplyOutOfSyncOnly=true
+        retry:
+          limit: 3
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 1m
+      ignoreDifferences:
+        - group: apps
+          kind: Deployment
+          jsonPointers:
+            - /spec/replicas
