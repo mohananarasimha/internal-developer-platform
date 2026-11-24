@@ -61,10 +61,7 @@ def test_invalid_liveness_path_rejected() -> None:
     [
         ("invalid-latest-tag.yaml", {"IDP_TAG_LATEST"}),
         ("invalid-secret-in-env.yaml", {"IDP_ENV_SECRET_FORBIDDEN"}),
-        (
-            "invalid-prod-single-replica.yaml",
-            {"IDP_PROD_MIN_REPLICAS", "IDP_CRITICAL_PROD_REPLICAS"},
-        ),
+        ("invalid-prod-single-replica.yaml", {"IDP_PROD_MIN_REPLICAS"}),
         ("invalid-privileged-port.yaml", {"IDP_PORT_PRIVILEGED"}),
     ],
 )
@@ -76,7 +73,7 @@ def test_experiment_01_invalid_fixtures_fail_with_exact_codes(
     result = validate_service_file(fixture_path, environments=("staging", "prod"))
     assert result.valid is False
     observed_codes = {violation.code for violation in result.violations}
-    assert expected_codes.issubset(observed_codes)
+    assert observed_codes == expected_codes
 
 
 def test_sha256_digest_tag_is_accepted() -> None:
