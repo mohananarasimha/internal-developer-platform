@@ -34,6 +34,26 @@ def test_valid_payments_api_spec_passes() -> None:
     assert prod.sizing.minReplicas == 2
     assert prod.sizing.maxReplicas == 6
     assert prod.env["APP_ENV"] == "prod"
+    assert prod.runtime.healthPath == "/healthz"
+    assert prod.runtime.livenessPath == "/livez"
+
+
+def test_invalid_liveness_path_rejected() -> None:
+    raw = {
+        "apiVersion": "idp.local/v1",
+        "kind": "ServiceSpec",
+        "metadata": {"name": "checkout-api", "owner": "checkout-team", "tier": "standard"},
+        "runtime": {
+            "image": "local/checkout-api",
+            "tag": "1.0.0",
+            "port": 8080,
+            "livenessPath": "livez-missing-slash",
+        },
+        "sizing": {"profile": "small", "minReplicas": 2, "maxReplicas": 4, "targetCPU": 70},
+    }
+    result = validate_spec_dict(raw, environments=("prod",))
+    assert result.valid is False
+    assert {v.code for v in result.violations} == {"IDP_PATH_INVALID"}
 
 
 @pytest.mark.parametrize(
@@ -41,10 +61,7 @@ def test_valid_payments_api_spec_passes() -> None:
     [
         ("invalid-latest-tag.yaml", {"IDP_TAG_LATEST"}),
         ("invalid-secret-in-env.yaml", {"IDP_ENV_SECRET_FORBIDDEN"}),
-        (
-            "invalid-prod-single-replica.yaml",
-            {"IDP_PROD_MIN_REPLICAS", "IDP_CRITICAL_PROD_REPLICAS"},
-        ),
+        ("invalid-prod-single-replica.yaml", {"IDP_PROD_MIN_REPLICAS"}),
         ("invalid-privileged-port.yaml", {"IDP_PORT_PRIVILEGED"}),
     ],
 )
@@ -56,7 +73,7 @@ def test_experiment_01_invalid_fixtures_fail_with_exact_codes(
     result = validate_service_file(fixture_path, environments=("staging", "prod"))
     assert result.valid is False
     observed_codes = {violation.code for violation in result.violations}
-    assert expected_codes.issubset(observed_codes)
+    assert observed_codes == expected_codes
 
 
 def test_sha256_digest_tag_is_accepted() -> None:

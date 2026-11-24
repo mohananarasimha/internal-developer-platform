@@ -91,7 +91,7 @@ class PaymentsHTTPServer(ThreadingHTTPServer):
 
 
 class PaymentsRequestHandler(BaseHTTPRequestHandler):
-    """HTTP handler implementing /, /healthz, and /metrics."""
+    """HTTP handler implementing /, /livez, /healthz, and /metrics."""
 
     server: PaymentsHTTPServer
 
@@ -129,6 +129,14 @@ class PaymentsRequestHandler(BaseHTTPRequestHandler):
                     "env": cfg.env,
                 },
                 route="/",
+            )
+            return
+
+        if path == "/livez":
+            self._send_json(
+                HTTPStatus.OK,
+                {"status": "alive", "service": cfg.service_name},
+                route="/livez",
             )
             return
 

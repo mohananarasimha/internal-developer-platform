@@ -12,8 +12,8 @@ This directory defines cluster-level namespace policies and the Argo CD `Applica
 ### Explicit Namespace Management (`CreateNamespace=false`)
 Namespaces are owned by the platform (`namespaces.yaml`), never auto-created by application syncs. This ensures Pod Security Admission labels (`restricted`), resource quotas, and network policies exist before any workload can schedule.
 
-### HPA + `selfHeal` Reconciliation (`ignoreDifferences`)
-Because `Deployment.spec.replicas` is managed dynamically by `HorizontalPodAutoscaler` when `maxReplicas > minReplicas`, `applicationset.yaml` ignores `/spec/replicas` diffs on `apps/v1` `Deployment`. Without this, Argo CD `selfHeal: true` would continuously revert scaled-out replica counts back to `minReplicas`.
+### HPA + `selfHeal` Reconciliation (`ignoreDifferences` + `RespectIgnoreDifferences=true`)
+Because `Deployment.spec.replicas` is managed dynamically by `HorizontalPodAutoscaler` when `maxReplicas > minReplicas`, `applicationset.yaml` pairs `ignoreDifferences` on `/spec/replicas` with `RespectIgnoreDifferences=true` in `syncPolicy.syncOptions`. `ignoreDifferences` alone only suppresses `OutOfSync` diff reporting—during an actual sync (for example on an image tag update), Argo CD still applies the `spec.replicas` value from Git and resets HPA-scaled workloads back to `minReplicas`. Setting `RespectIgnoreDifferences=true` tells Argo CD to also exclude those ignored paths during sync apply so HPA owns replica scaling end-to-end.
 
 ### Multi-Team Production Sync Strategy: Staging Auto-Sync vs. Prod Sync Gates
 In this single-repo local setup, `applicationset.yaml` uses automated sync across `rendered/*/*` to make local GitOps demos and rollback experiments deterministic. In a multi-team production environment, platform teams split this into two distinct `ApplicationSet` policies:

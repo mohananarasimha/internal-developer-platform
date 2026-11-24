@@ -35,6 +35,7 @@ spec:
         syncOptions:
           - CreateNamespace=false
           - ApplyOutOfSyncOnly=true
+          - RespectIgnoreDifferences=true
         retry:
           limit: 3
           backoff:

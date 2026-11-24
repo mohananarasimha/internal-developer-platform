@@ -20,10 +20,10 @@ flowchart LR
 | Exposed in `service.yaml` (Developer Intent) | Enforced by Platform (Hidden Safe Defaults) |
 | --- | --- |
 | `metadata`: `name`, `owner`, `tier` (`critical` \| `standard`) | Standard `app.kubernetes.io/*` + `idp.local/*` ownership labels |
-| `runtime`: `image`, immutable `tag` (semver or `sha256:`), non-privileged `port` (`1024–65535`), `healthPath`, `metricsPath` | `runAsNonRoot: true`, `runAsUser: 10001`, `readOnlyRootFilesystem: true`, `allowPrivilegeEscalation: false`, `capabilities.drop: [ALL]`, `seccompProfile: RuntimeDefault`, `automountServiceAccountToken: false` |
+| `runtime`: `image`, immutable `tag` (semver or `sha256:`), non-privileged `port` (`1024–65535`), `healthPath` (readiness, default `/healthz`), `livenessPath` (startup + liveness, default `/livez`), `metricsPath` | `runAsNonRoot: true`, `runAsUser: 10001`, `readOnlyRootFilesystem: true`, `allowPrivilegeEscalation: false`, `capabilities.drop: [ALL]`, `seccompProfile: RuntimeDefault`, `automountServiceAccountToken: false`; split readiness (`/healthz`) vs. startup/liveness (`/livez`) probes |
 | `sizing`: `profile` (`small` \| `medium` \| `large`), `minReplicas`, `maxReplicas`, `targetCPU` (`50–90`) | Deterministic CPU/memory requests & limits; `RollingUpdate` with `maxUnavailable: 0`; `PodDisruptionBudget` (`minAvailable: 1`) when `minReplicas >= 2`; `HPA` with `scaleDown.stabilizationWindowSeconds: 300` |
 | `env` (non-secret key/value pairs) + `secretRefs` (K8s Secret names) | Blocks secret-like keys (`PASSWORD`, `SECRET`, `TOKEN`, `API_KEY`, `PRIVATE_KEY`, `AWS_SECRET`) and credential patterns in `env`; mounts `secretRefs` via `envFrom` |
-| `environments.staging` / `environments.prod` overrides | `prod` enforces `minReplicas >= 2` (and critical-tier HA + PDB) |
+| `environments.staging` / `environments.prod` overrides | `prod` enforces `minReplicas >= 2` (which also enables automatic `PodDisruptionBudget` generation) |
 
 ### Deterministic Sizing Profiles
 
@@ -37,7 +37,7 @@ flowchart LR
 
 ```text
 apps/
-  payments-api/           # Minimal stdlib HTTP service (/ , /healthz, /metrics) + non-root Dockerfile
+  payments-api/           # Minimal stdlib HTTP service (/, /livez, /healthz, /metrics) + non-root Dockerfile
 platform/
   cli/                    # Python 3.11+ idp CLI (schema, policy, renderer, pytest)
   charts/web-service/     # Standardized golden-path Helm chart
@@ -73,7 +73,7 @@ uv run --project platform/cli idp validate experiments/01-config-validation/inva
 | # | Experiment | Status | Summary |
 | --- | --- | --- | --- |
 | 01 | [Config Validation & Policy Guardrails](experiments/01-config-validation/README.md) | **Complete** | Proves valid config passes (`exit 0`), 4 invalid fixtures fail with exact violation codes (`exit 1`), and parse errors isolate to `exit 2`. |
-| 02 | [Healthy vs. Failed Deployment (`ImagePullBackOff` & Probe Failure)](experiments/02-deployment-health/README.md) | **Complete** | Proved `maxUnavailable: 0` and probes kept `47/47` (`100%`) live requests `200 OK` under both `FAIL_HEALTH=true` (`503`) and `ImagePullBackOff` (`9.9.9-missing`) under `restricted` PSS on local `kind`, with `0s` recovery. |
+| 02 | [Failed Rollouts Behind a Service (Readiness vs. Liveness)](experiments/02-deployment-health/README.md) | **Complete** | In-cluster traffic through the Service stayed at 625/625 OK during readiness-failure and bad-image rollouts on `kind`; the failing pod stayed not-ready with 0 restarts. Pointing liveness at `/healthz` instead caused 2 restarts in 90 s. |
 | 03 | Fixed Replicas vs. HPA Under Synthetic Load | Planned | Compare fixed replica count against HPA scaling and stabilization window under synthetic CPU load. |
 | 04 | Release Promotion vs. GitOps Rollback | Planned | Promote `v1 -> broken v2`, revert in Git, and measure Argo CD automatic recovery time. |
 

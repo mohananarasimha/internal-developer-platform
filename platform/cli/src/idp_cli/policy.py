@@ -185,29 +185,6 @@ def evaluate_resolved_policies(resolved: ResolvedServiceConfig) -> list[PolicyVi
                 ),
             )
         )
-        if resolved.metadata.tier == "critical":
-            violations.append(
-                PolicyViolation(
-                    code="IDP_CRITICAL_PROD_REPLICAS",
-                    environment=env_name,
-                    field="sizing.minReplicas",
-                    message=(
-                        "Critical-tier services in prod require minReplicas >= 2 "
-                        "to enable PodDisruptionBudget protection"
-                    ),
-                )
-            )
-
-    # 4. Deterministic sizing profile validation
-    if resolved.sizing.profile not in RESOURCE_PROFILES:
-        violations.append(
-            PolicyViolation(
-                code="IDP_RESOURCE_PROFILE_UNKNOWN",
-                environment=env_name,
-                field="sizing.profile",
-                message=f"Unsupported sizing profile '{resolved.sizing.profile}'",
-            )
-        )
 
     return violations
 

@@ -133,7 +133,7 @@ spec:
               type: RuntimeDefault
           startupProbe:
             httpGet:
-              path: /healthz
+              path: /livez
               port: http
             periodSeconds: 2
             timeoutSeconds: 2
@@ -148,7 +148,7 @@ spec:
             failureThreshold: 3
           livenessProbe:
             httpGet:
-              path: /healthz
+              path: /livez
               port: http
             initialDelaySeconds: 15
             periodSeconds: 10
