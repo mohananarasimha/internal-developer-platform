@@ -1,0 +1,29 @@
+CONFIG url=http://payments-api.prod.svc.cluster.local/work?ms=20 rate_rps=60.0 duration_sec=240.0 interval_sec=10.0 timeout_sec=5.0 max_inflight=600
+LOAD_START epoch=1795596083.215
+LOAD_END epoch=1795596323.199 scheduled=14400
+DRAINED leftover_inflight=0 max_inflight_seen=147
+INTERVAL t=   0-10  s {"sent": 600, "ok": 555, "err": 45, "err_pct": 7.5, "p50_ms": 405.4, "p95_ms": 3815.3, "p99_ms": 5408.3, "outcomes": {"ok": 555, "timeout": 45}}
+INTERVAL t=  10-20  s {"sent": 600, "ok": 489, "err": 111, "err_pct": 18.5, "p50_ms": 576.5, "p95_ms": 4617.3, "p99_ms": 6614.7, "outcomes": {"ok": 489, "timeout": 111}}
+INTERVAL t=  20-30  s {"sent": 600, "ok": 589, "err": 11, "err_pct": 1.83, "p50_ms": 298.1, "p95_ms": 3469.8, "p99_ms": 4893.5, "outcomes": {"ok": 589, "timeout": 11}}
+INTERVAL t=  30-40  s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 23.9, "p95_ms": 143.8, "p99_ms": 307.9, "outcomes": {"ok": 600}}
+INTERVAL t=  40-50  s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.6, "p95_ms": 63.5, "p99_ms": 88.4, "outcomes": {"ok": 600}}
+INTERVAL t=  50-60  s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.8, "p95_ms": 57.4, "p99_ms": 89.6, "outcomes": {"ok": 600}}
+INTERVAL t=  60-70  s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.6, "p95_ms": 62.5, "p99_ms": 95.9, "outcomes": {"ok": 600}}
+INTERVAL t=  70-80  s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.6, "p95_ms": 62.9, "p99_ms": 89.7, "outcomes": {"ok": 600}}
+INTERVAL t=  80-90  s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.8, "p95_ms": 73.4, "p99_ms": 132.7, "outcomes": {"ok": 600}}
+INTERVAL t=  90-100 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.7, "p95_ms": 60.9, "p99_ms": 108.6, "outcomes": {"ok": 600}}
+INTERVAL t= 100-110 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.6, "p95_ms": 55.9, "p99_ms": 79.6, "outcomes": {"ok": 600}}
+INTERVAL t= 110-120 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.7, "p95_ms": 48.3, "p99_ms": 82.6, "outcomes": {"ok": 600}}
+INTERVAL t= 120-130 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 23.0, "p95_ms": 59.0, "p99_ms": 85.5, "outcomes": {"ok": 600}}
+INTERVAL t= 130-140 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.5, "p95_ms": 65.0, "p99_ms": 103.7, "outcomes": {"ok": 600}}
+INTERVAL t= 140-150 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.9, "p95_ms": 58.5, "p99_ms": 93.4, "outcomes": {"ok": 600}}
+INTERVAL t= 150-160 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.7, "p95_ms": 62.8, "p99_ms": 89.3, "outcomes": {"ok": 600}}
+INTERVAL t= 160-170 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.3, "p95_ms": 55.9, "p99_ms": 92.6, "outcomes": {"ok": 600}}
+INTERVAL t= 170-180 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.4, "p95_ms": 63.2, "p99_ms": 102.4, "outcomes": {"ok": 600}}
+INTERVAL t= 180-190 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 23.2, "p95_ms": 64.7, "p99_ms": 91.4, "outcomes": {"ok": 600}}
+INTERVAL t= 190-200 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 23.0, "p95_ms": 52.2, "p99_ms": 74.8, "outcomes": {"ok": 600}}
+INTERVAL t= 200-210 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.5, "p95_ms": 60.2, "p99_ms": 94.7, "outcomes": {"ok": 600}}
+INTERVAL t= 210-220 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.5, "p95_ms": 54.8, "p99_ms": 97.5, "outcomes": {"ok": 600}}
+INTERVAL t= 220-230 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.4, "p95_ms": 58.5, "p99_ms": 94.7, "outcomes": {"ok": 600}}
+INTERVAL t= 230-240 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.7, "p95_ms": 45.1, "p99_ms": 75.3, "outcomes": {"ok": 600}}
+SUMMARY {"sent": 14400, "ok": 14233, "err": 167, "err_pct": 1.16, "p50_ms": 23.1, "p95_ms": 454.6, "p99_ms": 3401.6, "outcomes": {"ok": 14233, "timeout": 167}, "goodput_rps": 59.3}

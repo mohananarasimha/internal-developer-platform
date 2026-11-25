@@ -109,3 +109,27 @@ def test_unknown_route_returns_404() -> None:
         status, _, body = _get(port, "/does-not-exist")
         assert status == 404
         assert json.loads(body) == {"error": "not_found"}
+
+
+def test_work_endpoint_burns_cpu_and_validates_ms() -> None:
+    with running_server(fail_health=False) as port:
+        status, _, body = _get(port, "/work?ms=20")
+        assert status == 200
+        payload = json.loads(body)
+        assert payload["service"] == "payments-api"
+        assert payload["work_ms"] == 20
+        assert payload["cpu_ms"] >= 19.0
+
+        bad_type_status, _, bad_type_body = _get(port, "/work?ms=abc")
+        assert bad_type_status == 400
+        assert json.loads(bad_type_body)["error"] == "invalid_ms"
+
+        for bad_ms in ("0", str(app_mod.MAX_WORK_MS + 1)):
+            bad_range_status, _, bad_range_body = _get(port, f"/work?ms={bad_ms}")
+            assert bad_range_status == 400
+            assert json.loads(bad_range_body)["error"] == "invalid_ms"
+
+        m_status, _, m_body = _get(port, "/metrics")
+        assert m_status == 200
+        assert 'payments_api_requests_total{path="/work",status="200"} 1' in m_body
+        assert 'payments_api_requests_total{path="/work",status="400"} 3' in m_body

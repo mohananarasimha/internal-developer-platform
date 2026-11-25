@@ -1,0 +1,3 @@
+POD payments-api-884d4d998-k2jzd pre created=t+-40s ready=t+112s node=idp-local-worker restarts=2
+POD payments-api-884d4d998-m8lb8 pre created=t+-30s ready=t+241s node=idp-local-worker restarts=2
+SCALEUP new_pods=0
