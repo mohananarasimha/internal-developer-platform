@@ -1,0 +1,12 @@
+start_blob_sha=8262261c9214b60acbc2013447ebb943d05c5040
+observer started at 1795598402 (client 10 req/s -> payments-api.exp04-sandbox)
+BAD_PUSH epoch=1795598412 commit=8cfa6566661ff3031f086eb8f1d089642bf53247 blob=f84f72221d81be14de69de42b82d46be88de5ac0
+BAD_DEPLOYED epoch=1795598416 state=Synced Progressing 8cfa6566661ff3031f086eb8f1d089642bf53247
+deployment.apps/payments-api rolled back
+UNDO_RUN epoch=1795598424
+SELFHEAL_REAPPLIED epoch=1795598425 dt=1s image=local/payments-api:9.9.9-missing
+REVERT_PUSH epoch=1795598437 commit=f1fda79c04b8bcec205f8858f698d3f5fa20baaf blob=8262261c9214b60acbc2013447ebb943d05c5040 mode=default-poll
+REVERT_HEALTHY epoch=1795598610 dt=173s state=Synced Healthy f1fda79c04b8bcec205f8858f698d3f5fa20baaf
+LOAD_START epoch=1795598401.953
+LOAD_END epoch=1795598621.854 scheduled=2200 elapsed_sec=220.0
+SUMMARY {"sent": 2200, "ok": 2200, "err": 0, "err_pct": 0.0, "p50_ms": 4.1, "p95_ms": 8.0, "p99_ms": 10.1, "outcomes": {"ok": 2200}, "goodput_rps": 10.0}

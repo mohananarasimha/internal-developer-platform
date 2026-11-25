@@ -86,6 +86,8 @@ if [[ "${WITH_ARGOCD}" == "true" ]]; then
     -f "https://raw.githubusercontent.com/argoproj/argo-cd/${ARGOCD_VERSION}/manifests/install.yaml"
   echo "==> Waiting for argocd-server deployment to become ready"
   kubectl --context "${KUBE_CONTEXT}" -n argocd rollout status deployment/argocd-server --timeout=300s
+  echo "==> Switching Argo CD to annotation-based resource tracking"
+  kubectl --context "${KUBE_CONTEXT}" apply -f "${REPO_ROOT}/gitops/argocd/argocd-cm.yaml"
   echo "==> Applying GitOps ApplicationSet"
   kubectl --context "${KUBE_CONTEXT}" apply -f "${REPO_ROOT}/gitops/argocd/applicationset.yaml"
 else

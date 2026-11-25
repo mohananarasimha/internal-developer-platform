@@ -7,7 +7,9 @@ send time. If MAX_INFLIGHT requests are already outstanding, the arrival is
 recorded as `client_dropped` instead of being silently delayed.
 
 Configuration via environment variables:
-  TARGET_URL, RATE_RPS, DURATION_SEC, INTERVAL_SEC, TIMEOUT_SEC, MAX_INFLIGHT
+  TARGET_URL, RATE_RPS, DURATION_SEC, INTERVAL_SEC, TIMEOUT_SEC, MAX_INFLIGHT,
+  STOP_FILE (optional: stop scheduling early once this path exists; DURATION_SEC is then
+  an upper bound)
 """
 
 from __future__ import annotations
@@ -26,6 +28,7 @@ DURATION = float(os.environ.get("DURATION_SEC", "60"))
 INTERVAL = float(os.environ.get("INTERVAL_SEC", "10"))
 TIMEOUT = float(os.environ.get("TIMEOUT_SEC", "5"))
 MAX_INFLIGHT = int(os.environ.get("MAX_INFLIGHT", "600"))
+STOP_FILE = os.environ.get("STOP_FILE", "")
 
 lock = threading.Lock()
 results: list[tuple[float, float | None, str]] = []
@@ -97,10 +100,15 @@ def main() -> None:
     print(f"LOAD_START epoch={start_epoch:.3f}", flush=True)
     n = 0
     max_seen_inflight = 0
+    next_stop_check = 0.0
     while True:
         offset = n / RATE
         if offset >= DURATION:
             break
+        if STOP_FILE and offset >= next_stop_check:
+            next_stop_check = offset + 1.0
+            if os.path.exists(STOP_FILE):
+                break
         target = start + offset
         delay = target - time.monotonic()
         if delay > 0:
@@ -115,7 +123,8 @@ def main() -> None:
         if admit:
             threading.Thread(target=send, args=(target, offset), daemon=True).start()
         n += 1
-    print(f"LOAD_END epoch={time.time():.3f} scheduled={n}", flush=True)
+    elapsed = min(DURATION, n / RATE)
+    print(f"LOAD_END epoch={time.time():.3f} scheduled={n} elapsed_sec={elapsed:.1f}", flush=True)
 
     drain_deadline = time.monotonic() + 2 * TIMEOUT + 5
     while time.monotonic() < drain_deadline:
@@ -136,7 +145,7 @@ def main() -> None:
         lo, hi = int(b * INTERVAL), int((b + 1) * INTERVAL)
         print(f"INTERVAL t={lo:>4}-{hi:<4}s " + json.dumps(s), flush=True)
     overall = summarize(rows)
-    overall["goodput_rps"] = round(overall["ok"] / DURATION, 2)
+    overall["goodput_rps"] = round(overall["ok"] / elapsed, 2) if elapsed else 0.0
     print("SUMMARY " + json.dumps(overall), flush=True)
 
 

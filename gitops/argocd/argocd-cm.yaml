@@ -1,0 +1,14 @@
+# Merged into the argocd-cm created by the pinned Argo CD install manifest (kubectl apply
+# only adds these keys). Argo CD 2.x defaults to label tracking, which rewrites
+# app.kubernetes.io/instance on every managed object to the Application name and collides
+# with the chart's own use of that label.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: argocd-cm
+    app.kubernetes.io/part-of: argocd
+data:
+  application.resourceTrackingMethod: annotation
