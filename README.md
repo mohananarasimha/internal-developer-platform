@@ -43,7 +43,7 @@ platform/
   charts/web-service/     # Standardized golden-path Helm chart
   kind/                   # Local kind cluster config, bootstrap.sh, install-metrics-server.sh, teardown.sh
 gitops/
-  argocd/                 # Restricted-PSS namespaces and GitOps ApplicationSet
+  argocd/                 # Restricted-PSS namespaces, annotation-tracking ConfigMap, and GitOps ApplicationSet
 services/
   payments-api/           # Sample golden-path service.yaml (staging + prod)
 rendered/
@@ -53,6 +53,7 @@ experiments/
   01-config-validation/   # Guardrail proof + invalid fixtures
   02-deployment-health/   # Healthy vs. failed rollout experiment & runner script
   03-fixed-replicas-vs-hpa/ # Open-loop load client, runner, raw results
+  04-gitops-revert-rollback/ # Live Argo CD selfHeal vs. git revert rollback experiment & results
 ```
 
 ## Quick Start
@@ -76,7 +77,7 @@ uv run --project platform/cli idp validate experiments/01-config-validation/inva
 | 01 | [Config Validation & Policy Guardrails](experiments/01-config-validation/README.md) | **Complete** | Proves valid config passes (`exit 0`), 4 invalid fixtures fail with exact violation codes (`exit 1`), and parse errors isolate to `exit 2`. |
 | 02 | [Failed Rollouts Behind a Service (Readiness vs. Liveness)](experiments/02-deployment-health/README.md) | **Complete** | In-cluster traffic through the Service stayed at 625/625 OK during readiness-failure and bad-image rollouts on `kind`; the failing pod stayed not-ready with 0 restarts. Pointing liveness at `/healthz` instead caused 2 restarts in 90 s. |
 | 03 | [Fixed Replicas vs. HPA Under Open-Loop CPU Load](experiments/03-fixed-replicas-vs-hpa/README.md) | **Complete** | At 60 req/s (2 replicas cleanly serve ~40), fixed replicas failed 23–25% of requests across 3 runs and the pods took liveness restarts. The HPA scaled to 6 within 14–29 s and errors fell to 1.2–2.7%, all within the first 40 s. Scale-down came ~290 s after CPU dropped. |
-| 04 | Release Promotion vs. GitOps Rollback | Planned | Promote `v1 -> broken v2`, revert in Git, and measure Argo CD automatic recovery time. |
+| 04 | [Imperative Rollback vs. GitOps `git revert` Under Argo CD `selfHeal`](experiments/04-gitops-revert-rollback/README.md) | **Complete** | Live Argo CD `v2.14.2` on `kind`: `kubectl rollout undo` was reverted by `selfHeal` in **1 s** (both trials), while `git revert` reached `Synced / Healthy` in **173 s** under default 3-min polling and **5 s** with `refresh=hard`; in-cluster availability stayed 100% (2700/2700 OK). |
 
 ## Architecture Tradeoffs
 
@@ -88,6 +89,6 @@ uv run --project platform/cli idp validate experiments/01-config-validation/inva
 
 - **Secrets Boundary**: Secret values never enter Git; only Kubernetes `Secret` object references (`secretRefs`) are declared. Secret provisioning happens out-of-band in the cluster (see `SECURITY.md`).
 - **Known Limitations**:
-  - Current milestone validates/renders deterministic manifests, enforces `restricted` PSS on local `kind`, and proves Experiments 01–03; Experiment 04 (GitOps rollback) is scheduled next.
+  - Current milestone validates/renders deterministic manifests, enforces `restricted` PSS on local `kind`, reconciles live via Argo CD `v2.14.2`, and proves Experiments 01–04.
   - No custom escape-hatch Helm override block is exposed yet to keep security defaults strictly non-overridable.
   - CPU-only HPA targeting (`targetCPU`); custom/RPS metrics require a metrics adapter outside this baseline scope.

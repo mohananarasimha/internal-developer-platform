@@ -1,0 +1,40 @@
+# Experiment-only Application. Mirrors the idp-services ApplicationSet template, but tracks
+# the throwaway exp04-sandbox branch and deploys into its own namespace so it never
+# touches objects owned by prod-payments-api. Deleted by `run-experiment.sh teardown`.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: exp04-sandbox
+  namespace: argocd
+  labels:
+    idp.local/experiment: "04"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/mohananarasimha/internal-developer-platform.git
+    targetRevision: exp04-sandbox
+    path: rendered/prod/payments-api
+    directory:
+      include: "manifests.yaml"
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: exp04-sandbox
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false
+      - ApplyOutOfSyncOnly=true
+      - RespectIgnoreDifferences=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 1m
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas

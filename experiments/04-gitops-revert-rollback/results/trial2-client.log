@@ -1,0 +1,10 @@
+CONFIG url=http://payments-api.exp04-sandbox.svc.cluster.local/ rate_rps=10.0 duration_sec=1500.0 interval_sec=10.0 timeout_sec=2.0 max_inflight=600
+LOAD_START epoch=1795598711.606
+LOAD_END epoch=1795598761.508 scheduled=500 elapsed_sec=50.0
+DRAINED leftover_inflight=0 max_inflight_seen=1
+INTERVAL t=   0-10  s {"sent": 100, "ok": 100, "err": 0, "err_pct": 0.0, "p50_ms": 5.1, "p95_ms": 10.8, "p99_ms": 28.9, "outcomes": {"ok": 100}}
+INTERVAL t=  10-20  s {"sent": 100, "ok": 100, "err": 0, "err_pct": 0.0, "p50_ms": 4.5, "p95_ms": 8.8, "p99_ms": 12.4, "outcomes": {"ok": 100}}
+INTERVAL t=  20-30  s {"sent": 100, "ok": 100, "err": 0, "err_pct": 0.0, "p50_ms": 4.8, "p95_ms": 9.2, "p99_ms": 9.7, "outcomes": {"ok": 100}}
+INTERVAL t=  30-40  s {"sent": 100, "ok": 100, "err": 0, "err_pct": 0.0, "p50_ms": 4.6, "p95_ms": 7.8, "p99_ms": 9.5, "outcomes": {"ok": 100}}
+INTERVAL t=  40-50  s {"sent": 100, "ok": 100, "err": 0, "err_pct": 0.0, "p50_ms": 5.3, "p95_ms": 9.1, "p99_ms": 10.7, "outcomes": {"ok": 100}}
+SUMMARY {"sent": 500, "ok": 500, "err": 0, "err_pct": 0.0, "p50_ms": 4.9, "p95_ms": 8.9, "p99_ms": 11.1, "outcomes": {"ok": 500}, "goodput_rps": 10.0}
