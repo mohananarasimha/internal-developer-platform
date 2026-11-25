@@ -1,0 +1,33 @@
+# Recovered from the runner's terminal output (original file deleted by a concurrent agent).
+# Same client, same parameters: 60 rps, /work?ms=20, 240 s, 5 s timeout, max 600 in flight.
+# POD offsets corrected by +19800 s: the original report parsed API-server UTC timestamps as
+# local IST. Restart counts are cumulative per pod; added during this run: hddhj +3, j6fq9 +1 (j6fq9 was already at 1 from the capacity probe).
+DRAINED leftover_inflight=0 max_inflight_seen=241
+INTERVAL t=   0-10  s {"sent": 600, "ok": 556, "err": 44, "err_pct": 7.33, "p50_ms": 427.6, "p95_ms": 3947.4, "p99_ms": 5014.3, "outcomes": {"ok": 556, "timeout": 44}}
+INTERVAL t=  10-20  s {"sent": 600, "ok": 474, "err": 126, "err_pct": 21.0, "p50_ms": 576.7, "p95_ms": 4567.3, "p99_ms": 5503.9, "outcomes": {"ok": 474, "timeout": 126}}
+INTERVAL t=  20-30  s {"sent": 600, "ok": 458, "err": 142, "err_pct": 23.67, "p50_ms": 471.2, "p95_ms": 4363.1, "p99_ms": 6177.4, "outcomes": {"conn_err": 50, "ok": 458, "timeout": 92}}
+INTERVAL t=  30-40  s {"sent": 600, "ok": 320, "err": 280, "err_pct": 46.67, "p50_ms": 1422.7, "p95_ms": 5565.3, "p99_ms": 7073.1, "outcomes": {"conn_err": 8, "ok": 320, "timeout": 272}}
+INTERVAL t=  40-50  s {"sent": 600, "ok": 481, "err": 119, "err_pct": 19.83, "p50_ms": 565.1, "p95_ms": 4589.4, "p99_ms": 7777.5, "outcomes": {"ok": 481, "timeout": 119}}
+INTERVAL t=  50-60  s {"sent": 600, "ok": 476, "err": 124, "err_pct": 20.67, "p50_ms": 565.9, "p95_ms": 4679.8, "p99_ms": 6059.0, "outcomes": {"ok": 476, "timeout": 124}}
+INTERVAL t=  60-70  s {"sent": 600, "ok": 476, "err": 124, "err_pct": 20.67, "p50_ms": 625.3, "p95_ms": 4834.7, "p99_ms": 6130.0, "outcomes": {"ok": 476, "timeout": 124}}
+INTERVAL t=  70-80  s {"sent": 600, "ok": 467, "err": 133, "err_pct": 22.17, "p50_ms": 493.6, "p95_ms": 4506.8, "p99_ms": 5622.9, "outcomes": {"ok": 467, "timeout": 133}}
+INTERVAL t=  80-90  s {"sent": 600, "ok": 477, "err": 123, "err_pct": 20.5, "p50_ms": 1243.6, "p95_ms": 4591.8, "p99_ms": 6038.4, "outcomes": {"ok": 477, "timeout": 123}}
+INTERVAL t=  90-100 s {"sent": 600, "ok": 469, "err": 131, "err_pct": 21.83, "p50_ms": 523.8, "p95_ms": 4667.9, "p99_ms": 6050.5, "outcomes": {"ok": 469, "timeout": 131}}
+INTERVAL t= 100-110 s {"sent": 600, "ok": 465, "err": 135, "err_pct": 22.5, "p50_ms": 496.5, "p95_ms": 4485.8, "p99_ms": 5858.3, "outcomes": {"ok": 465, "timeout": 135}}
+INTERVAL t= 110-120 s {"sent": 600, "ok": 473, "err": 127, "err_pct": 21.17, "p50_ms": 620.9, "p95_ms": 4706.0, "p99_ms": 6748.7, "outcomes": {"ok": 473, "timeout": 127}}
+INTERVAL t= 120-130 s {"sent": 600, "ok": 464, "err": 136, "err_pct": 22.67, "p50_ms": 523.3, "p95_ms": 4927.9, "p99_ms": 6805.7, "outcomes": {"ok": 464, "timeout": 136}}
+INTERVAL t= 130-140 s {"sent": 600, "ok": 460, "err": 140, "err_pct": 23.33, "p50_ms": 510.1, "p95_ms": 4583.4, "p99_ms": 6527.3, "outcomes": {"ok": 460, "timeout": 140}}
+INTERVAL t= 140-150 s {"sent": 600, "ok": 392, "err": 208, "err_pct": 34.67, "p50_ms": 455.6, "p95_ms": 4189.0, "p99_ms": 5668.0, "outcomes": {"conn_err": 50, "ok": 392, "timeout": 158}}
+INTERVAL t= 150-160 s {"sent": 600, "ok": 345, "err": 255, "err_pct": 42.5, "p50_ms": 395.1, "p95_ms": 4345.6, "p99_ms": 5253.0, "outcomes": {"conn_err": 92, "ok": 345, "timeout": 163}}
+INTERVAL t= 160-170 s {"sent": 600, "ok": 355, "err": 245, "err_pct": 40.83, "p50_ms": 420.9, "p95_ms": 4566.4, "p99_ms": 6145.6, "outcomes": {"ok": 355, "timeout": 245}}
+INTERVAL t= 170-180 s {"sent": 600, "ok": 479, "err": 121, "err_pct": 20.17, "p50_ms": 575.7, "p95_ms": 4607.1, "p99_ms": 6319.7, "outcomes": {"ok": 479, "timeout": 121}}
+INTERVAL t= 180-190 s {"sent": 600, "ok": 484, "err": 116, "err_pct": 19.33, "p50_ms": 620.6, "p95_ms": 4663.5, "p99_ms": 5928.1, "outcomes": {"ok": 484, "timeout": 116}}
+INTERVAL t= 190-200 s {"sent": 600, "ok": 473, "err": 127, "err_pct": 21.17, "p50_ms": 479.3, "p95_ms": 4702.2, "p99_ms": 6271.8, "outcomes": {"ok": 473, "timeout": 127}}
+INTERVAL t= 200-210 s {"sent": 600, "ok": 465, "err": 135, "err_pct": 22.5, "p50_ms": 517.4, "p95_ms": 4512.1, "p99_ms": 6067.8, "outcomes": {"ok": 465, "timeout": 135}}
+INTERVAL t= 210-220 s {"sent": 600, "ok": 445, "err": 155, "err_pct": 25.83, "p50_ms": 1190.3, "p95_ms": 4123.2, "p99_ms": 4721.0, "outcomes": {"conn_err": 41, "ok": 445, "timeout": 114}}
+INTERVAL t= 220-230 s {"sent": 600, "ok": 310, "err": 290, "err_pct": 48.33, "p50_ms": 397.8, "p95_ms": 4688.0, "p99_ms": 6134.7, "outcomes": {"ok": 310, "timeout": 290}}
+INTERVAL t= 230-240 s {"sent": 600, "ok": 527, "err": 73, "err_pct": 12.17, "p50_ms": 449.4, "p95_ms": 4454.7, "p99_ms": 5988.2, "outcomes": {"ok": 527, "timeout": 73}}
+SUMMARY {"sent": 14400, "ok": 10791, "err": 3609, "err_pct": 25.06, "p50_ms": 499.2, "p95_ms": 4570.9, "p99_ms": 6114.9, "outcomes": {"conn_err": 241, "ok": 10791, "timeout": 3368}, "goodput_rps": 44.96}
+POD payments-api-5d4f74b585-hddhj pre created=t+-403s ready=t+228s node=idp-local-worker restarts=3
+POD payments-api-5d4f74b585-j6fq9 pre created=t+-395s ready=t+156s node=idp-local-worker restarts=2
+SCALEUP new_pods=0

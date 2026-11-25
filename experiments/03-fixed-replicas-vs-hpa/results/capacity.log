@@ -1,0 +1,17 @@
+# capacity probe: fixed replicas=2, WORK_MS=20, 40s per rate, 2026-11-25T04:43:19Z
+# Recovered from the runner's terminal output (original file deleted by a concurrent agent).
+RATE 20 SUMMARY {"sent": 800, "ok": 800, "err": 0, "err_pct": 0.0, "p50_ms": 21.9, "p95_ms": 25.3, "p99_ms": 26.5, "outcomes": {"ok": 800}, "goodput_rps": 20.0}
+  pod payments-api-5d4f74b585-hddhj ready=1/1 restarts=0
+  pod payments-api-5d4f74b585-j6fq9 ready=1/1 restarts=0
+RATE 30 SUMMARY {"sent": 1200, "ok": 1200, "err": 0, "err_pct": 0.0, "p50_ms": 21.9, "p95_ms": 54.8, "p99_ms": 84.8, "outcomes": {"ok": 1200}, "goodput_rps": 30.0}
+  pod payments-api-5d4f74b585-hddhj ready=1/1 restarts=0
+  pod payments-api-5d4f74b585-j6fq9 ready=1/1 restarts=0
+RATE 40 SUMMARY {"sent": 1600, "ok": 1600, "err": 0, "err_pct": 0.0, "p50_ms": 27.0, "p95_ms": 205.8, "p99_ms": 285.7, "outcomes": {"ok": 1600}, "goodput_rps": 40.0}
+  pod payments-api-5d4f74b585-hddhj ready=1/1 restarts=0
+  pod payments-api-5d4f74b585-j6fq9 ready=1/1 restarts=0
+RATE 50 SUMMARY {"sent": 2000, "ok": 1981, "err": 19, "err_pct": 0.95, "p50_ms": 365.1, "p95_ms": 2514.9, "p99_ms": 4086.3, "outcomes": {"ok": 1981, "timeout": 19}, "goodput_rps": 49.52}
+  pod payments-api-5d4f74b585-hddhj ready=1/1 restarts=0
+  pod payments-api-5d4f74b585-j6fq9 ready=1/1 restarts=0
+RATE 60 SUMMARY {"sent": 2400, "ok": 1935, "err": 465, "err_pct": 19.38, "p50_ms": 489.0, "p95_ms": 4570.3, "p99_ms": 6488.4, "outcomes": {"conn_err": 56, "ok": 1935, "timeout": 409}, "goodput_rps": 48.38}
+  pod payments-api-5d4f74b585-hddhj ready=1/1 restarts=0
+  pod payments-api-5d4f74b585-j6fq9 ready=1/1 restarts=1

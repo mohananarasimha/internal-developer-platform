@@ -1,0 +1,9 @@
+HPA_EVENT t+14s count=1 New size: 4; reason: cpu resource utilization (percentage of request) above target
+HPA_EVENT t+29s count=1 New size: 6; reason: cpu resource utilization (percentage of request) above target
+POD payments-api-884d4d998-8nsrt new created=t+29s ready=t+37s node=idp-local-worker restarts=0
+POD payments-api-884d4d998-dcv2z new created=t+14s ready=t+22s node=idp-local-worker restarts=0
+POD payments-api-884d4d998-gsh92 new created=t+14s ready=t+22s node=idp-local-worker restarts=0
+POD payments-api-884d4d998-k2jzd pre created=t+-341s ready=t+-189s node=idp-local-worker restarts=2
+POD payments-api-884d4d998-m8lb8 pre created=t+-331s ready=t+-60s node=idp-local-worker restarts=2
+POD payments-api-884d4d998-ncv52 new created=t+29s ready=t+37s node=idp-local-worker restarts=0
+SCALEUP new_pods=4 first_pod_created=t+14s first_new_ready=t+22s all_new_ready=t+37s

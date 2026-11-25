@@ -1,0 +1,36 @@
+# Recovered from the runner's output (original file deleted by a concurrent agent).
+# 60 rps, /work?ms=20, 240 s, 5 s timeout, max 600 in flight. Load start 2026-11-25T05:30:40Z.
+DRAINED leftover_inflight=0 max_inflight_seen=180
+INTERVAL t=   0-10  s {"sent": 600, "ok": 545, "err": 55, "err_pct": 9.17, "p50_ms": 437.4, "p95_ms": 4211.9, "p99_ms": 4920.0, "outcomes": {"ok": 545, "timeout": 55}}
+INTERVAL t=  10-20  s {"sent": 600, "ok": 481, "err": 119, "err_pct": 19.83, "p50_ms": 1272.9, "p95_ms": 4668.9, "p99_ms": 6117.1, "outcomes": {"ok": 481, "timeout": 119}}
+INTERVAL t=  20-30  s {"sent": 600, "ok": 470, "err": 130, "err_pct": 21.67, "p50_ms": 1388.8, "p95_ms": 4954.3, "p99_ms": 6516.9, "outcomes": {"ok": 470, "timeout": 130}}
+INTERVAL t=  30-40  s {"sent": 600, "ok": 510, "err": 90, "err_pct": 15.0, "p50_ms": 700.8, "p95_ms": 4589.8, "p99_ms": 5754.3, "outcomes": {"ok": 510, "timeout": 90}}
+INTERVAL t=  40-50  s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.8, "p95_ms": 1121.3, "p99_ms": 2426.7, "outcomes": {"ok": 600}}
+INTERVAL t=  50-60  s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.2, "p95_ms": 61.1, "p99_ms": 100.7, "outcomes": {"ok": 600}}
+INTERVAL t=  60-70  s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.4, "p95_ms": 61.1, "p99_ms": 89.6, "outcomes": {"ok": 600}}
+INTERVAL t=  70-80  s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.0, "p95_ms": 68.9, "p99_ms": 112.2, "outcomes": {"ok": 600}}
+INTERVAL t=  80-90  s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.6, "p95_ms": 59.8, "p99_ms": 149.3, "outcomes": {"ok": 600}}
+INTERVAL t=  90-100 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.3, "p95_ms": 66.9, "p99_ms": 94.4, "outcomes": {"ok": 600}}
+INTERVAL t= 100-110 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.0, "p95_ms": 57.4, "p99_ms": 94.5, "outcomes": {"ok": 600}}
+INTERVAL t= 110-120 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.0, "p95_ms": 57.0, "p99_ms": 84.7, "outcomes": {"ok": 600}}
+INTERVAL t= 120-130 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 21.9, "p95_ms": 68.9, "p99_ms": 138.6, "outcomes": {"ok": 600}}
+INTERVAL t= 130-140 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.1, "p95_ms": 62.0, "p99_ms": 94.1, "outcomes": {"ok": 600}}
+INTERVAL t= 140-150 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.7, "p95_ms": 66.6, "p99_ms": 100.9, "outcomes": {"ok": 600}}
+INTERVAL t= 150-160 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.4, "p95_ms": 65.9, "p99_ms": 127.2, "outcomes": {"ok": 600}}
+INTERVAL t= 160-170 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.0, "p95_ms": 56.7, "p99_ms": 94.7, "outcomes": {"ok": 600}}
+INTERVAL t= 170-180 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 21.9, "p95_ms": 52.5, "p99_ms": 78.8, "outcomes": {"ok": 600}}
+INTERVAL t= 180-190 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.0, "p95_ms": 52.2, "p99_ms": 83.7, "outcomes": {"ok": 600}}
+INTERVAL t= 190-200 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.5, "p95_ms": 70.5, "p99_ms": 116.9, "outcomes": {"ok": 600}}
+INTERVAL t= 200-210 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.5, "p95_ms": 61.7, "p99_ms": 114.3, "outcomes": {"ok": 600}}
+INTERVAL t= 210-220 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.3, "p95_ms": 62.8, "p99_ms": 84.5, "outcomes": {"ok": 600}}
+INTERVAL t= 220-230 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 22.4, "p95_ms": 60.0, "p99_ms": 91.5, "outcomes": {"ok": 600}}
+INTERVAL t= 230-240 s {"sent": 600, "ok": 600, "err": 0, "err_pct": 0.0, "p50_ms": 23.2, "p95_ms": 70.2, "p99_ms": 96.8, "outcomes": {"ok": 600}}
+SUMMARY {"sent": 14400, "ok": 14006, "err": 394, "err_pct": 2.74, "p50_ms": 23.0, "p95_ms": 1580.8, "p99_ms": 4456.2, "outcomes": {"ok": 14006, "timeout": 394}, "goodput_rps": 58.36}
+HPA_EVENT t+29s count=1 New size: 6; reason: cpu resource utilization (percentage of request) above target
+POD payments-api-5d4f74b585-hddhj pre created=t+-2851s ready=t+-1949s node=idp-local-worker restarts=4
+POD payments-api-5d4f74b585-j6fq9 pre created=t+-2843s ready=t+-1932s node=idp-local-worker restarts=3
+POD payments-api-5d4f74b585-pwdtx new created=t+29s ready=t+39s node=idp-local-worker restarts=0
+POD payments-api-5d4f74b585-trgzt new created=t+29s ready=t+39s node=idp-local-worker restarts=0
+POD payments-api-5d4f74b585-vx6zl new created=t+29s ready=t+39s node=idp-local-worker restarts=0
+POD payments-api-5d4f74b585-zhctg new created=t+29s ready=t+39s node=idp-local-worker restarts=0
+SCALEUP new_pods=4 first_pod_created=t+29s first_new_ready=t+39s all_new_ready=t+39s

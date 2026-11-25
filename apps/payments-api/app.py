@@ -7,11 +7,13 @@ import logging
 import os
 import signal
 import threading
+import time
 from collections import Counter
 from dataclasses import dataclass, field
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
+from urllib.parse import parse_qs, urlsplit
 
 logging.basicConfig(
     level=os.getenv("LOG_LEVEL", "INFO").upper(),
@@ -21,6 +23,24 @@ logger = logging.getLogger("payments-api")
 
 DEFAULT_BIND_HOST = "0.0.0.0"  # noqa: S104 - container workload must bind all interfaces for probes
 DEFAULT_PORT = 8080
+DEFAULT_WORK_MS = 50
+MIN_WORK_MS = 1
+MAX_WORK_MS = 2000
+
+
+def burn_cpu_ms(target_ms: int) -> float:
+    """Spin until this thread has consumed target_ms of CPU time; return CPU ms used.
+
+    thread_time() counts only CPU this thread actually ran, so time spent waiting for
+    the GIL or throttled by the cgroup CPU limit shows up as latency, not as work done.
+    """
+    start = time.thread_time()
+    deadline = start + target_ms / 1000.0
+    acc = 0
+    while (now := time.thread_time()) < deadline:
+        for i in range(1000):
+            acc ^= i * i
+    return (now - start) * 1000.0
 
 
 @dataclass
@@ -91,7 +111,7 @@ class PaymentsHTTPServer(ThreadingHTTPServer):
 
 
 class PaymentsRequestHandler(BaseHTTPRequestHandler):
-    """HTTP handler implementing /, /livez, /healthz, and /metrics."""
+    """HTTP handler implementing /, /livez, /healthz, /work, and /metrics."""
 
     server: PaymentsHTTPServer
 
@@ -117,7 +137,8 @@ class PaymentsRequestHandler(BaseHTTPRequestHandler):
         self.server.metrics.record(route, status.value)
 
     def do_GET(self) -> None:  # noqa: N802
-        path = self.path.split("?", maxsplit=1)[0]
+        parsed = urlsplit(self.path)
+        path = parsed.path
         cfg = self.server.app_config
 
         if path == "/":
@@ -153,6 +174,40 @@ class PaymentsRequestHandler(BaseHTTPRequestHandler):
                     {"status": "ok", "service": cfg.service_name},
                     route="/healthz",
                 )
+            return
+
+        if path == "/work":
+            params = parse_qs(parsed.query)
+            raw_ms = params.get("ms", [str(DEFAULT_WORK_MS)])[0]
+            try:
+                work_ms = int(raw_ms)
+            except ValueError:
+                self._send_json(
+                    HTTPStatus.BAD_REQUEST,
+                    {"error": "invalid_ms", "message": "ms must be an integer"},
+                    route="/work",
+                )
+                return
+            if not (MIN_WORK_MS <= work_ms <= MAX_WORK_MS):
+                self._send_json(
+                    HTTPStatus.BAD_REQUEST,
+                    {
+                        "error": "invalid_ms",
+                        "message": f"ms must be between {MIN_WORK_MS} and {MAX_WORK_MS}",
+                    },
+                    route="/work",
+                )
+                return
+            cpu_ms = burn_cpu_ms(work_ms)
+            self._send_json(
+                HTTPStatus.OK,
+                {
+                    "service": cfg.service_name,
+                    "work_ms": work_ms,
+                    "cpu_ms": round(cpu_ms, 2),
+                },
+                route="/work",
+            )
             return
 
         if path == "/metrics":

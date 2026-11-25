@@ -1,0 +1,29 @@
+CONFIG url=http://payments-api.prod.svc.cluster.local/work?ms=20 rate_rps=60.0 duration_sec=240.0 interval_sec=10.0 timeout_sec=5.0 max_inflight=600
+LOAD_START epoch=1795595782.259
+LOAD_END epoch=1795596022.243 scheduled=14400
+DRAINED leftover_inflight=0 max_inflight_seen=242
+INTERVAL t=   0-10  s {"sent": 600, "ok": 548, "err": 52, "err_pct": 8.67, "p50_ms": 392.6, "p95_ms": 3535.4, "p99_ms": 4897.1, "outcomes": {"ok": 548, "timeout": 52}}
+INTERVAL t=  10-20  s {"sent": 600, "ok": 495, "err": 105, "err_pct": 17.5, "p50_ms": 628.8, "p95_ms": 4531.7, "p99_ms": 5888.6, "outcomes": {"ok": 495, "timeout": 105}}
+INTERVAL t=  20-30  s {"sent": 600, "ok": 473, "err": 127, "err_pct": 21.17, "p50_ms": 561.5, "p95_ms": 4739.0, "p99_ms": 6285.3, "outcomes": {"conn_err": 18, "ok": 473, "timeout": 109}}
+INTERVAL t=  30-40  s {"sent": 600, "ok": 331, "err": 269, "err_pct": 44.83, "p50_ms": 484.2, "p95_ms": 4691.9, "p99_ms": 5912.7, "outcomes": {"conn_err": 28, "ok": 331, "timeout": 241}}
+INTERVAL t=  40-50  s {"sent": 600, "ok": 459, "err": 141, "err_pct": 23.5, "p50_ms": 498.1, "p95_ms": 4792.9, "p99_ms": 6027.9, "outcomes": {"ok": 459, "timeout": 141}}
+INTERVAL t=  50-60  s {"sent": 600, "ok": 475, "err": 125, "err_pct": 20.83, "p50_ms": 1362.6, "p95_ms": 4778.6, "p99_ms": 6714.3, "outcomes": {"ok": 475, "timeout": 125}}
+INTERVAL t=  60-70  s {"sent": 600, "ok": 457, "err": 143, "err_pct": 23.83, "p50_ms": 1354.4, "p95_ms": 4833.8, "p99_ms": 6542.6, "outcomes": {"ok": 457, "timeout": 143}}
+INTERVAL t=  70-80  s {"sent": 600, "ok": 392, "err": 208, "err_pct": 34.67, "p50_ms": 481.4, "p95_ms": 4633.6, "p99_ms": 5750.2, "outcomes": {"conn_err": 7, "ok": 392, "timeout": 201}}
+INTERVAL t=  80-90  s {"sent": 600, "ok": 484, "err": 116, "err_pct": 19.33, "p50_ms": 579.8, "p95_ms": 4732.4, "p99_ms": 6862.1, "outcomes": {"ok": 484, "timeout": 116}}
+INTERVAL t=  90-100 s {"sent": 600, "ok": 464, "err": 136, "err_pct": 22.67, "p50_ms": 1365.1, "p95_ms": 4737.9, "p99_ms": 6247.2, "outcomes": {"conn_err": 13, "ok": 464, "timeout": 123}}
+INTERVAL t= 100-110 s {"sent": 600, "ok": 311, "err": 289, "err_pct": 48.17, "p50_ms": 420.8, "p95_ms": 4335.7, "p99_ms": 6106.6, "outcomes": {"conn_err": 52, "ok": 311, "timeout": 237}}
+INTERVAL t= 110-120 s {"sent": 600, "ok": 359, "err": 241, "err_pct": 40.17, "p50_ms": 447.5, "p95_ms": 4513.7, "p99_ms": 5807.7, "outcomes": {"conn_err": 42, "ok": 359, "timeout": 199}}
+INTERVAL t= 120-130 s {"sent": 600, "ok": 471, "err": 129, "err_pct": 21.5, "p50_ms": 482.6, "p95_ms": 4626.8, "p99_ms": 6730.1, "outcomes": {"ok": 471, "timeout": 129}}
+INTERVAL t= 130-140 s {"sent": 600, "ok": 475, "err": 125, "err_pct": 20.83, "p50_ms": 662.9, "p95_ms": 4563.0, "p99_ms": 5930.5, "outcomes": {"ok": 475, "timeout": 125}}
+INTERVAL t= 140-150 s {"sent": 600, "ok": 465, "err": 135, "err_pct": 22.5, "p50_ms": 1347.2, "p95_ms": 4953.9, "p99_ms": 6777.2, "outcomes": {"ok": 465, "timeout": 135}}
+INTERVAL t= 150-160 s {"sent": 600, "ok": 471, "err": 129, "err_pct": 21.5, "p50_ms": 598.4, "p95_ms": 4734.9, "p99_ms": 6390.6, "outcomes": {"ok": 471, "timeout": 129}}
+INTERVAL t= 160-170 s {"sent": 600, "ok": 456, "err": 144, "err_pct": 24.0, "p50_ms": 494.6, "p95_ms": 4761.5, "p99_ms": 5871.2, "outcomes": {"ok": 456, "timeout": 144}}
+INTERVAL t= 170-180 s {"sent": 600, "ok": 491, "err": 109, "err_pct": 18.17, "p50_ms": 1382.7, "p95_ms": 4669.3, "p99_ms": 6081.3, "outcomes": {"ok": 491, "timeout": 109}}
+INTERVAL t= 180-190 s {"sent": 600, "ok": 457, "err": 143, "err_pct": 23.83, "p50_ms": 662.2, "p95_ms": 4892.6, "p99_ms": 6156.4, "outcomes": {"ok": 457, "timeout": 143}}
+INTERVAL t= 190-200 s {"sent": 600, "ok": 470, "err": 130, "err_pct": 21.67, "p50_ms": 1273.6, "p95_ms": 4831.9, "p99_ms": 6192.0, "outcomes": {"ok": 470, "timeout": 130}}
+INTERVAL t= 200-210 s {"sent": 600, "ok": 464, "err": 136, "err_pct": 22.67, "p50_ms": 1308.9, "p95_ms": 4695.5, "p99_ms": 5998.5, "outcomes": {"ok": 464, "timeout": 136}}
+INTERVAL t= 210-220 s {"sent": 600, "ok": 455, "err": 145, "err_pct": 24.17, "p50_ms": 647.4, "p95_ms": 4648.9, "p99_ms": 6335.1, "outcomes": {"ok": 455, "timeout": 145}}
+INTERVAL t= 220-230 s {"sent": 600, "ok": 468, "err": 132, "err_pct": 22.0, "p50_ms": 567.3, "p95_ms": 4549.7, "p99_ms": 4912.1, "outcomes": {"conn_err": 8, "ok": 468, "timeout": 124}}
+INTERVAL t= 230-240 s {"sent": 600, "ok": 388, "err": 212, "err_pct": 35.33, "p50_ms": 533.3, "p95_ms": 5044.6, "p99_ms": 7719.0, "outcomes": {"conn_err": 25, "ok": 388, "timeout": 187}}
+SUMMARY {"sent": 14400, "ok": 10779, "err": 3621, "err_pct": 25.15, "p50_ms": 541.0, "p95_ms": 4700.4, "p99_ms": 6169.9, "outcomes": {"conn_err": 193, "ok": 10779, "timeout": 3428}, "goodput_rps": 44.91}

@@ -37,11 +37,11 @@ flowchart LR
 
 ```text
 apps/
-  payments-api/           # Minimal stdlib HTTP service (/, /livez, /healthz, /metrics) + non-root Dockerfile
+  payments-api/           # Minimal stdlib HTTP service (/, /livez, /healthz, /work, /metrics) + non-root Dockerfile
 platform/
   cli/                    # Python 3.11+ idp CLI (schema, policy, renderer, pytest)
   charts/web-service/     # Standardized golden-path Helm chart
-  kind/                   # Local kind cluster config, bootstrap.sh, teardown.sh
+  kind/                   # Local kind cluster config, bootstrap.sh, install-metrics-server.sh, teardown.sh
 gitops/
   argocd/                 # Restricted-PSS namespaces and GitOps ApplicationSet
 services/
@@ -52,6 +52,7 @@ rendered/
 experiments/
   01-config-validation/   # Guardrail proof + invalid fixtures
   02-deployment-health/   # Healthy vs. failed rollout experiment & runner script
+  03-fixed-replicas-vs-hpa/ # Open-loop load client, runner, raw results
 ```
 
 ## Quick Start
@@ -74,7 +75,7 @@ uv run --project platform/cli idp validate experiments/01-config-validation/inva
 | --- | --- | --- | --- |
 | 01 | [Config Validation & Policy Guardrails](experiments/01-config-validation/README.md) | **Complete** | Proves valid config passes (`exit 0`), 4 invalid fixtures fail with exact violation codes (`exit 1`), and parse errors isolate to `exit 2`. |
 | 02 | [Failed Rollouts Behind a Service (Readiness vs. Liveness)](experiments/02-deployment-health/README.md) | **Complete** | In-cluster traffic through the Service stayed at 625/625 OK during readiness-failure and bad-image rollouts on `kind`; the failing pod stayed not-ready with 0 restarts. Pointing liveness at `/healthz` instead caused 2 restarts in 90 s. |
-| 03 | Fixed Replicas vs. HPA Under Synthetic Load | Planned | Compare fixed replica count against HPA scaling and stabilization window under synthetic CPU load. |
+| 03 | [Fixed Replicas vs. HPA Under Open-Loop CPU Load](experiments/03-fixed-replicas-vs-hpa/README.md) | **Complete** | At 60 req/s (2 replicas cleanly serve ~40), fixed replicas failed 23–25% of requests across 3 runs and the pods took liveness restarts. The HPA scaled to 6 within 14–29 s and errors fell to 1.2–2.7%, all within the first 40 s. Scale-down came ~290 s after CPU dropped. |
 | 04 | Release Promotion vs. GitOps Rollback | Planned | Promote `v1 -> broken v2`, revert in Git, and measure Argo CD automatic recovery time. |
 
 ## Architecture Tradeoffs
@@ -87,6 +88,6 @@ uv run --project platform/cli idp validate experiments/01-config-validation/inva
 
 - **Secrets Boundary**: Secret values never enter Git; only Kubernetes `Secret` object references (`secretRefs`) are declared. Secret provisioning happens out-of-band in the cluster (see `SECURITY.md`).
 - **Known Limitations**:
-  - Current milestone validates/renders deterministic manifests, enforces `restricted` PSS on local `kind`, and proves Experiments 01–02; Experiments 03 (HPA under load) and 04 (GitOps rollback) are scheduled next.
+  - Current milestone validates/renders deterministic manifests, enforces `restricted` PSS on local `kind`, and proves Experiments 01–03; Experiment 04 (GitOps rollback) is scheduled next.
   - No custom escape-hatch Helm override block is exposed yet to keep security defaults strictly non-overridable.
   - CPU-only HPA targeting (`targetCPU`); custom/RPS metrics require a metrics adapter outside this baseline scope.

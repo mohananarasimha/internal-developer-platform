@@ -1,0 +1,2 @@
+PRE_RUN_POD payments-api-884d4d998-k2jzd restarts=2
+PRE_RUN_POD payments-api-884d4d998-m8lb8 restarts=2
