@@ -10,7 +10,7 @@ flowchart LR
     B -->|exit 1 on violation| X[Fail Fast in Local Dev / CI]
     B -->|valid| C[Helm Template<br/>platform/charts/web-service]
     C --> D[rendered/&lt;env&gt;/&lt;svc&gt;/<br/>values.yaml + manifests.yaml]
-    D --> E[GitHub Actions CI<br/>ruff, pytest, helm lint, drift check]
+    D --> E[GitHub Actions CI<br/>ruff, pytest, helm lint, drift check, kubeconform]
     E --> F[Argo CD GitOps Sync<br/>local kind: staging &amp; prod]
     F --> G[Health &amp; /metrics Verification]
 ```
@@ -62,7 +62,8 @@ experiments/
 # Install CLI + dev tools
 make sync
 
-# Run full validation, lint, test, helm lint, and render drift check
+# Run full validation, lint, test, helm lint, render drift check, and schema check
+# (schema check needs kubeconform v0.8.0 on PATH; CI installs it checksum-verified)
 make check
 
 # Inspect CLI output on valid and invalid configs

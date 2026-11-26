@@ -1,9 +1,11 @@
-.PHONY: sync lint test app-test gitops-lint helm-lint validate render drift-check check kind-up kind-up-argocd kind-down
+.PHONY: sync lint test app-test gitops-lint helm-lint validate render drift-check schema-check check kind-up kind-up-argocd kind-down
 
 CLI_DIR := platform/cli
 APP_DIR := apps/payments-api
 CHART_DIR := platform/charts/web-service
 SAMPLE_SPEC := services/payments-api/service.yaml
+KUBECONFORM ?= kubeconform
+K8S_VERSION := 1.35.0
 
 sync:
 	uv sync --directory $(CLI_DIR) --extra dev
@@ -33,7 +35,10 @@ render:
 drift-check: render
 	git diff --exit-code rendered/
 
-check: lint test app-test gitops-lint helm-lint validate drift-check
+schema-check:
+	$(KUBECONFORM) -strict -summary -kubernetes-version $(K8S_VERSION) rendered/*/*/manifests.yaml
+
+check: lint test app-test gitops-lint helm-lint validate drift-check schema-check
 
 kind-up:
 	./platform/kind/bootstrap.sh

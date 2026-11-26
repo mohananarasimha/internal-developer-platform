@@ -35,3 +35,4 @@ Which runs:
 3. `helm lint platform/charts/web-service`
 4. `idp validate services/payments-api/service.yaml --env all`
 5. `idp render` + `git diff --exit-code rendered/`
+6. `kubeconform -strict` on `rendered/*/*/manifests.yaml` against Kubernetes 1.35.0 schemas (kubeconform v0.8.0, same as CI)
