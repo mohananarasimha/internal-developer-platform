@@ -8,7 +8,7 @@ KUBECONFORM ?= kubeconform
 K8S_VERSION := 1.35.0
 
 sync:
-	uv sync --directory $(CLI_DIR) --extra dev
+	uv sync --locked --directory $(CLI_DIR) --extra dev
 
 lint:
 	uv run --directory $(CLI_DIR) ruff check .

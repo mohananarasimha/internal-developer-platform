@@ -28,7 +28,7 @@ jobs:
 
       - name: Sync Python CLI dependencies
         working-directory: platform/cli
-        run: uv sync --python 3.12 --extra dev
+        run: uv sync --locked --python 3.12 --extra dev
 
       - name: Lint Python CLI and sample app (including security rules)
         run: |
