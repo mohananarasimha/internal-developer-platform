@@ -1,0 +1,6 @@
+{
+  "deleted_by": "dev@payments.example (group team:payments-team)",
+  "restored": true,
+  "seconds_until_recreated": 5.7,
+  "timeout_s": 300
+}
