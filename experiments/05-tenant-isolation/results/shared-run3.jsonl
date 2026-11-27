@@ -1,0 +1,9 @@
+{"category": "rbac", "check": "read own secret", "actor": "payments-dev", "target": "exp05-shared/payments-db-credentials", "outcome": "ALLOWED", "detail": ""}
+{"category": "rbac", "check": "read other team's secret", "actor": "payments-dev", "target": "exp05-shared/ledger-db-credentials", "outcome": "ALLOWED", "detail": ""}
+{"category": "rbac", "check": "scale other team's deployment", "actor": "payments-dev", "target": "exp05-shared/ledger-api", "outcome": "ALLOWED", "detail": ""}
+{"category": "rbac", "check": "delete other team's deployment", "actor": "payments-dev", "target": "exp05-shared/ledger-api", "outcome": "ALLOWED", "detail": ""}
+{"category": "rbac", "check": "exec into other team's pod", "actor": "payments-dev", "target": "exp05-shared/pods/exec", "outcome": "ALLOWED", "detail": "SubjectAccessReview"}
+{"category": "network", "check": "same team, same namespace", "actor": "pod in exp05-shared", "target": "http://payments-api.exp05-shared.svc.cluster.local/healthz", "outcome": "REACHABLE", "detail": ""}
+{"category": "network", "check": "payments -> ledger (not allowed by ledger-team)", "actor": "pod in exp05-shared", "target": "http://ledger-api.exp05-shared.svc.cluster.local/healthz", "outcome": "REACHABLE", "detail": ""}
+{"category": "network", "check": "ledger -> payments (allowed peer of payments-team)", "actor": "pod in exp05-shared", "target": "http://payments-api.exp05-shared.svc.cluster.local/healthz", "outcome": "REACHABLE", "detail": ""}
+{"category": "quota", "check": "runaway 10-replica deployment", "actor": "payments-dev", "target": "exp05-shared", "outcome": "10/10 pods created", "detail": ""}
