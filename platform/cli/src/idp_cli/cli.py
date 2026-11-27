@@ -14,6 +14,7 @@ from rich.table import Table
 from idp_cli.policy import ALL_ENVIRONMENTS, SpecParseError, validate_service_file
 from idp_cli.renderer import RenderError, render_environment
 from idp_cli.schema import EnvironmentName
+from idp_cli.tenancy import render_tenants
 
 app = typer.Typer(
     name="idp",
@@ -110,6 +111,10 @@ def render_cmd(
         Path | None,
         typer.Option("--chart-dir", help="Override path to platform web-service Helm chart"),
     ] = None,
+    teams_dir: Annotated[
+        Path | None,
+        typer.Option("--teams-dir", help="Directory of TeamSpec files (default: repo teams/)"),
+    ] = None,
 ) -> None:
     """Validate and render deterministic Helm values and Kubernetes manifests."""
     target_envs = _resolve_envs(env)
@@ -130,6 +135,7 @@ def render_cmd(
                 env=target_env,
                 out_dir=out_dir,
                 chart_dir=chart_dir,
+                teams_dir=teams_dir,
             )
         except RenderError as exc:
             err_console.print(f"[bold red]RENDER ERROR:[/bold red] {exc}")
@@ -139,6 +145,27 @@ def render_cmd(
             f"[bold green]RENDERED[/bold green] {artifacts.service_name} "
             f"({artifacts.environment}): {artifacts.manifests_path}"
         )
+
+
+@app.command("render-tenants")
+def render_tenants_cmd(
+    teams_dir: Annotated[
+        Path,
+        typer.Option("--teams-dir", help="Directory of TeamSpec files"),
+    ] = Path("teams"),
+    out_dir: Annotated[
+        Path,
+        typer.Option("--out-dir", help="Output directory for tenant namespace bundles"),
+    ] = Path("rendered-tenants"),
+) -> None:
+    """Render each team's per-environment namespace, RBAC, quota, and network policy."""
+    try:
+        written = render_tenants(teams_dir, out_dir)
+    except SpecParseError as exc:
+        err_console.print(f"[bold red]PARSE ERROR:[/bold red] {exc}")
+        raise typer.Exit(code=2) from None
+    for path in written:
+        console.print(f"[bold green]RENDERED[/bold green] tenant: {path}")
 
 
 if __name__ == "__main__":

@@ -56,13 +56,11 @@ jobs:
       - name: Lint golden-path Helm chart
         run: helm lint platform/charts/web-service
 
-      - name: Validate sample service specification
-        run: uv run --project platform/cli idp validate services/payments-api/service.yaml --env all
+      - name: Validate every service specification
+        run: make validate
 
-      - name: Verify rendered manifests have zero drift
-        run: |
-          uv run --project platform/cli idp render services/payments-api/service.yaml --env all --out-dir rendered
-          git diff --exit-code rendered/
+      - name: Verify rendered service and tenant manifests have zero drift
+        run: make drift-check
 
       - name: Install kubeconform
         env:

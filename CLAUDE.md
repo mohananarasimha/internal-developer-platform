@@ -13,11 +13,11 @@
 
 ```
 services/<svc>/service.yaml
-  -> platform/cli (`idp validate` + `idp render`)
+  -> platform/cli (`idp validate` + `idp render` + `idp render-tenants` from teams/*.yaml)
   -> platform/charts/web-service (Helm template)
   -> rendered/<env>/<svc>/{values.yaml,manifests.yaml}
   -> GitHub Actions CI gate (ruff, pytest, helm lint, validate, drift check, kubeconform)
-  -> Argo CD GitOps sync onto local kind cluster (staging / prod)
+  -> Argo CD GitOps sync onto local kind cluster (tenant namespaces <team>-staging / <team>-prod)
 ```
 
 ## Schema & Policy Contract
@@ -39,7 +39,7 @@ Run from the repository root before considering any change complete:
 - `uv run --directory platform/cli pytest -v`
 - `helm lint platform/charts/web-service`
 - `uv run --project platform/cli idp validate services/payments-api/service.yaml --env all`
-- `uv run --project platform/cli idp render services/payments-api/service.yaml --env all --out-dir rendered && git diff --exit-code rendered/`
+- `make drift-check` (renders tenants and every service, then fails on any diff or untracked file under `rendered/` or `rendered-tenants/`)
 - `make schema-check` (kubeconform v0.8.0, `-strict`, Kubernetes 1.35.0 schemas)
 
 ## Clean-Room & Security Rules

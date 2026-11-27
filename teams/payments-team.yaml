@@ -1,0 +1,23 @@
+apiVersion: idp.local/v1
+kind: TeamSpec
+metadata:
+  name: payments-team
+spec:
+  # Identity-provider group bound to the built-in `edit` ClusterRole in this team's namespaces.
+  group: team:payments-team
+  # ledger-api calls payments-api; nothing else may reach payments pods from outside.
+  allowIngressFrom:
+    - ledger-team
+  quota:
+    staging:
+      requestsCpu: "1"
+      requestsMemory: 1Gi
+      limitsCpu: "2"
+      limitsMemory: 2Gi
+      pods: 6
+    prod:
+      requestsCpu: "2"
+      requestsMemory: 2Gi
+      limitsCpu: "4"
+      limitsMemory: 4Gi
+      pods: 10

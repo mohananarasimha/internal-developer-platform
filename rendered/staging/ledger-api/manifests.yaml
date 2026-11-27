@@ -1,0 +1,167 @@
+---
+# Source: web-service/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: ledger-api
+  namespace: ledger-team-staging
+  labels:
+    app.kubernetes.io/name: ledger-api
+    app.kubernetes.io/instance: ledger-api
+    app.kubernetes.io/managed-by: idp-cli
+    idp.local/owner: ledger-team
+    idp.local/tier: standard
+    idp.local/environment: staging
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: ledger-api
+    app.kubernetes.io/instance: ledger-api
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+---
+# Source: web-service/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ledger-api
+  namespace: ledger-team-staging
+  labels:
+    app.kubernetes.io/name: ledger-api
+    app.kubernetes.io/instance: ledger-api
+    app.kubernetes.io/managed-by: idp-cli
+    idp.local/owner: ledger-team
+    idp.local/tier: standard
+    idp.local/environment: staging
+spec:
+  replicas: 1
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ledger-api
+      app.kubernetes.io/instance: ledger-api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ledger-api
+        app.kubernetes.io/instance: ledger-api
+        app.kubernetes.io/managed-by: idp-cli
+        idp.local/owner: ledger-team
+        idp.local/tier: standard
+        idp.local/environment: staging
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: ledger-api
+          image: "local/payments-api:1.0.0"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: APP_ENV
+              value: "staging"
+            - name: APP_VERSION
+              value: "1.0.0"
+            - name: LOG_LEVEL
+              value: "info"
+          envFrom:
+            - secretRef:
+                name: ledger-db-credentials
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          startupProbe:
+            httpGet:
+              path: /livez
+              port: http
+            periodSeconds: 2
+            timeoutSeconds: 2
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /livez
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+# Source: web-service/templates/hpa.yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ledger-api
+  namespace: ledger-team-staging
+  labels:
+    app.kubernetes.io/name: ledger-api
+    app.kubernetes.io/instance: ledger-api
+    app.kubernetes.io/managed-by: idp-cli
+    idp.local/owner: ledger-team
+    idp.local/tier: standard
+    idp.local/environment: staging
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ledger-api
+  minReplicas: 1
+  maxReplicas: 2
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300

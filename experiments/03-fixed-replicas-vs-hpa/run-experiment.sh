@@ -13,8 +13,9 @@ set -euo pipefail
 # Tunables (env): WORK_MS, RATE_RPS, LOAD_SEC, POST_SEC, CAPACITY_RATES, CAPACITY_SEC
 
 KUBE_CONTEXT="kind-idp-local"
-NAMESPACE="prod"
-CLIENT_NS="default"
+NAMESPACE="payments-team-prod"
+# Tenant NetworkPolicy admits same-namespace traffic only, so the client runs beside the service.
+CLIENT_NS="${NAMESPACE}"
 CLIENT_POD="exp03-load-client"
 CLIENT_CM="exp03-load-client"
 DEPLOYMENT="payments-api"
@@ -177,7 +178,7 @@ spec:
         - {name: MAX_INFLIGHT, value: "${MAX_INFLIGHT}"}
       resources:
         requests: {cpu: 250m, memory: 128Mi}
-        limits: {memory: 512Mi}
+        limits: {cpu: "1", memory: 512Mi}
       securityContext:
         runAsNonRoot: true
         runAsUser: 10001

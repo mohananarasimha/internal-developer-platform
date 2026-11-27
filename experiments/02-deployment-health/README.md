@@ -1,5 +1,7 @@
 # Experiment 02: Failed Rollouts Behind a Service (Readiness vs. Liveness)
 
+> **Namespace change after these results.** The results below were measured before team tenancy, with the service in namespace `prod` and the client in `default`. The script now targets `payments-team-prod` and runs the client in that namespace, because the tenant NetworkPolicy only admits same-namespace and peer-team traffic. It has not been re-run since.
+
 ## QUESTION
 
 When a broken revision is rolled out, do the golden-path defaults (`maxUnavailable: 0`, `maxSurge: 1`, readiness on `/healthz`, startup and liveness on `/livez`) keep real Service traffic at 100% success, and what changes if liveness is pointed at the same endpoint as readiness?

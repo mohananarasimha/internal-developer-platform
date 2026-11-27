@@ -3,7 +3,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: {{ include "web-service.fullname" . }}
-  namespace: {{ .Values.environment }}
+  namespace: {{ .Values.namespace }}
   labels:
     {{- include "web-service.labels" . | nindent 4 }}
 spec:
