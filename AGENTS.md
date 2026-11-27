@@ -14,6 +14,7 @@ This repository implements a declarative Kubernetes golden path (`service.yaml` 
 - `platform/charts/web-service/`: Standardized Helm chart enforcing hardened `securityContext`, probes, PDB, HPA, and Prometheus scrape annotations.
 - `services/<name>/service.yaml`: Developer-owned service intent declarations.
 - `rendered/<env>/<name>/`: Deterministic rendered Helm values and Kubernetes manifests checked into Git and drift-verified in CI.
+- `teams/<team>.yaml` -> `rendered-tenants/<team>/<env>/tenant.yaml`: platform-owned tenant namespace `<team>-<env>` (RBAC, quota, LimitRange, NetworkPolicy). A service's `metadata.owner` must name a team; it deploys only into that team's namespace.
 - `experiments/`: Controlled platform experiments with reproducible fixtures and recorded observations.
 
 ## Schema & Policy Invariants
@@ -34,5 +35,5 @@ Which runs:
 2. `pytest -v`
 3. `helm lint platform/charts/web-service`
 4. `idp validate services/payments-api/service.yaml --env all`
-5. `idp render` + `git diff --exit-code rendered/`
+5. `idp render-tenants` + `idp render` for every `services/*/service.yaml`, then `git diff --exit-code rendered/ rendered-tenants/` and no untracked rendered files
 6. `kubeconform -strict` on `rendered/*/*/manifests.yaml` against Kubernetes 1.35.0 schemas (kubeconform v0.8.0, same as CI)

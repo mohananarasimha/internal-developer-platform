@@ -6,11 +6,13 @@ metadata:
 spec:
   goTemplate: false
   generators:
+    # One Application per rendered/<env>/<service>/values.yaml. The destination namespace is
+    # read from that file, which the renderer derives from the owning team's tenant namespace.
     - git:
         repoURL: https://github.com/mohananarasimha/internal-developer-platform.git
         revision: main
-        directories:
-          - path: rendered/*/*
+        files:
+          - path: rendered/*/*/values.yaml
   template:
     metadata:
       name: "{{path[1]}}-{{path[2]}}"
@@ -27,7 +29,7 @@ spec:
           include: "manifests.yaml"
       destination:
         server: https://kubernetes.default.svc
-        namespace: "{{path[1]}}"
+        namespace: "{{namespace}}"
       syncPolicy:
         automated:
           prune: true

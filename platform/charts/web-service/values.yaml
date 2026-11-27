@@ -1,4 +1,5 @@
 environment: staging
+namespace: platform-team-staging
 
 metadata:
   name: sample-service

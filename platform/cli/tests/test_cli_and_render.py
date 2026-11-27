@@ -93,7 +93,7 @@ def test_cli_render_produces_hardened_k8s_manifests_deterministically(tmp_path: 
     }
 
     deployment = prod_by_kind["Deployment"]
-    assert deployment["metadata"]["namespace"] == "prod"
+    assert {doc["metadata"]["namespace"] for doc in prod_docs} == {"payments-team-prod"}
     assert deployment["spec"]["strategy"]["rollingUpdate"]["maxUnavailable"] == 0
 
     pod_spec = deployment["spec"]["template"]["spec"]

@@ -1,5 +1,7 @@
 # Experiment 03: Fixed Replicas vs. HPA Under Open-Loop CPU Load
 
+> **Namespace change after these results.** The results below were measured before team tenancy, with the service in namespace `prod` and the client in `default`. The script now targets `payments-team-prod` and runs the client in that namespace, because the tenant NetworkPolicy only admits same-namespace and peer-team traffic. The client now also sets an explicit 1 CPU limit. Without one, the namespace LimitRange would give it a 250m default limit and throttle the load generator. It has not been re-run since.
+
 ## QUESTION
 
 When offered load exceeds what the prod baseline of 2 replicas can serve, how much does the golden-path HPA (`minReplicas: 2`, `maxReplicas: 6`, `targetCPU: 65`) actually help, and how long are users exposed to overload before it does?

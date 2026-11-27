@@ -1,0 +1,20 @@
+apiVersion: idp.local/v1
+kind: TeamSpec
+metadata:
+  name: ledger-team
+spec:
+  group: team:ledger-team
+  allowIngressFrom: []
+  quota:
+    staging:
+      requestsCpu: "1"
+      requestsMemory: 1Gi
+      limitsCpu: "2"
+      limitsMemory: 2Gi
+      pods: 6
+    prod:
+      requestsCpu: "1"
+      requestsMemory: 1Gi
+      limitsCpu: "2"
+      limitsMemory: 2Gi
+      pods: 6

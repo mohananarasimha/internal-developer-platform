@@ -1,9 +1,9 @@
-.PHONY: sync lint test app-test gitops-lint helm-lint validate render drift-check schema-check check kind-up kind-up-argocd kind-down
+.PHONY: sync lint test app-test gitops-lint helm-lint validate render render-tenants drift-check schema-check check kind-up kind-up-argocd kind-down
 
 CLI_DIR := platform/cli
 APP_DIR := apps/payments-api
 CHART_DIR := platform/charts/web-service
-SAMPLE_SPEC := services/payments-api/service.yaml
+SERVICE_SPECS := $(sort $(wildcard services/*/service.yaml))
 KUBECONFORM ?= kubeconform
 K8S_VERSION := 1.35.0
 
@@ -27,16 +27,27 @@ helm-lint:
 	helm lint $(CHART_DIR)
 
 validate:
-	uv run --project $(CLI_DIR) idp validate $(SAMPLE_SPEC) --env all
+	@for spec in $(SERVICE_SPECS); do \
+		uv run --project $(CLI_DIR) idp validate $$spec --env all || exit 1; \
+	done
 
-render:
-	uv run --project $(CLI_DIR) idp render $(SAMPLE_SPEC) --env all --out-dir rendered
+render-tenants:
+	uv run --project $(CLI_DIR) idp render-tenants --teams-dir teams --out-dir rendered-tenants
 
+render: render-tenants
+	@for spec in $(SERVICE_SPECS); do \
+		uv run --project $(CLI_DIR) idp render $$spec --env all --out-dir rendered || exit 1; \
+	done
+
+# Untracked output counts as drift too: a new service or team must be committed rendered.
 drift-check: render
-	git diff --exit-code rendered/
+	git diff --exit-code rendered/ rendered-tenants/
+	@untracked="$$(git ls-files --others --exclude-standard rendered/ rendered-tenants/)"; \
+		test -z "$$untracked" || { echo "Untracked rendered output:"; echo "$$untracked"; exit 1; }
 
 schema-check:
-	$(KUBECONFORM) -strict -summary -kubernetes-version $(K8S_VERSION) rendered/*/*/manifests.yaml
+	$(KUBECONFORM) -strict -summary -kubernetes-version $(K8S_VERSION) \
+		rendered/*/*/manifests.yaml rendered-tenants/*/*/tenant.yaml
 
 check: lint test app-test gitops-lint helm-lint validate drift-check schema-check
 

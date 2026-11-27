@@ -10,8 +10,11 @@ from typing import Any
 
 import yaml
 
-from idp_cli.policy import evaluate_resolved_policies, get_resources_for_profile
+from idp_cli.policy import SpecParseError, evaluate_resolved_policies, get_resources_for_profile
 from idp_cli.schema import EnvironmentName, ResolvedServiceConfig, ServiceSpec
+from idp_cli.tenancy import load_teams, quota_shortfalls, tenant_namespace
+
+ROLLING_UPDATE_MAX_SURGE = 1
 
 
 class RenderError(Exception):
@@ -28,16 +31,23 @@ class RenderedArtifacts:
     manifests_path: Path
 
 
+REPO_ROOT = Path(__file__).resolve().parents[4]
+
+
 def default_chart_dir() -> Path:
     """Resolve platform/charts/web-service relative to the repository root."""
-    repo_root = Path(__file__).resolve().parents[4]
-    return repo_root / "platform" / "charts" / "web-service"
+    return REPO_ROOT / "platform" / "charts" / "web-service"
+
+
+def default_teams_dir() -> Path:
+    return REPO_ROOT / "teams"
 
 
 def build_helm_values(resolved: ResolvedServiceConfig) -> dict[str, Any]:
     """Construct deterministic Helm values from a resolved environment config."""
     return {
         "environment": resolved.environment,
+        "namespace": tenant_namespace(resolved.metadata.owner, resolved.environment),
         "metadata": {
             "name": resolved.metadata.name,
             "owner": resolved.metadata.owner,
@@ -68,6 +78,7 @@ def render_environment(
     env: EnvironmentName,
     out_dir: Path,
     chart_dir: Path | None = None,
+    teams_dir: Path | None = None,
 ) -> RenderedArtifacts:
     """Render values.yaml and Helm-templated manifests.yaml for one environment."""
     resolved = spec.resolve_environment(env)
@@ -75,6 +86,29 @@ def render_environment(
     if violations:
         codes = ", ".join(v.code for v in violations)
         raise RenderError(f"Refusing to render invalid {env} config ({codes})")
+
+    try:
+        teams = load_teams(teams_dir or default_teams_dir())
+    except SpecParseError as exc:
+        raise RenderError(str(exc)) from None
+    if resolved.metadata.owner not in teams:
+        raise RenderError(
+            f"IDP_OWNER_UNKNOWN: metadata.owner '{resolved.metadata.owner}' has no TeamSpec in "
+            f"{teams_dir or default_teams_dir()}; a service can only deploy into its owner's "
+            "tenant namespace"
+        )
+    worst_case_pods = resolved.sizing.maxReplicas + ROLLING_UPDATE_MAX_SURGE
+    shortfalls = quota_shortfalls(
+        teams[resolved.metadata.owner].spec.quota[env],
+        worst_case_pods,
+        get_resources_for_profile(resolved.sizing.profile),
+    )
+    if shortfalls:
+        raise RenderError(
+            f"IDP_QUOTA_EXCEEDED: {env} maxReplicas + rolling-update surge "
+            f"({worst_case_pods} pods) does not fit team '{resolved.metadata.owner}' quota: "
+            + "; ".join(shortfalls)
+        )
 
     resolved_chart = (chart_dir or default_chart_dir()).resolve()
     if not (resolved_chart / "Chart.yaml").is_file():
@@ -100,7 +134,7 @@ def render_environment(
         resolved.metadata.name,
         str(resolved_chart),
         "--namespace",
-        env,
+        values_dict["namespace"],
         "--values",
         str(values_path),
     ]

@@ -1,0 +1,33 @@
+apiVersion: idp.local/v1
+kind: ServiceSpec
+metadata:
+  name: ledger-api
+  owner: ledger-team
+  tier: standard
+runtime:
+  # Reuses the sample HTTP app image; the platform treats it as a separate team's service.
+  image: local/payments-api
+  tag: "1.0.0"
+  port: 8080
+  healthPath: /healthz
+  metricsPath: /metrics
+sizing:
+  profile: small
+  minReplicas: 1
+  maxReplicas: 2
+  targetCPU: 70
+env:
+  APP_VERSION: "1.0.0"
+  LOG_LEVEL: info
+secretRefs:
+  - ledger-db-credentials
+environments:
+  staging:
+    env:
+      APP_ENV: staging
+  prod:
+    sizing:
+      minReplicas: 2
+      maxReplicas: 3
+    env:
+      APP_ENV: prod

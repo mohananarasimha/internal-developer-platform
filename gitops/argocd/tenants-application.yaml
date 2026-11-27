@@ -1,0 +1,24 @@
+# Platform-owned tenant bundles (namespace, RBAC, quota, LimitRange, NetworkPolicy) for every
+# team and environment. prune is off on purpose: removing a team from Git must not delete a
+# namespace that may still hold workloads; offboarding is a reviewed manual step.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: idp-tenants
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/mohananarasimha/internal-developer-platform.git
+    targetRevision: main
+    path: rendered-tenants
+    directory:
+      recurse: true
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - ApplyOutOfSyncOnly=true

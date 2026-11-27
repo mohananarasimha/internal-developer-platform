@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "web-service.fullname" . }}
-  namespace: {{ .Values.environment }}
+  namespace: {{ .Values.namespace }}
   labels:
     {{- include "web-service.labels" . | nindent 4 }}
 spec:

@@ -15,7 +15,7 @@ usage() {
 Usage: $(basename "$0") [--with-argocd]
 
 Bootstraps the local kind cluster (${CLUSTER_NAME}), builds and loads ${IMAGE_TAG},
-applies restricted-PSS namespaces, and provisions synthetic local placeholder Secrets.
+applies tenant namespaces (rendered-tenants/), and provisions synthetic local placeholder Secrets.
 
 Options:
   --with-argocd   Also install pinned Argo CD (${ARGOCD_VERSION}) and apply ApplicationSet
@@ -63,19 +63,27 @@ docker build -t "${IMAGE_TAG}" "${REPO_ROOT}/apps/payments-api"
 echo "==> Loading '${IMAGE_TAG}' into kind cluster '${CLUSTER_NAME}'"
 kind load docker-image "${IMAGE_TAG}" --name "${CLUSTER_NAME}"
 
-echo "==> Applying restricted-PSS namespaces (staging, prod)"
-kubectl --context "${KUBE_CONTEXT}" apply -f "${REPO_ROOT}/gitops/argocd/namespaces.yaml"
+# Tenants first: service Applications use CreateNamespace=false and need these namespaces.
+echo "==> Applying tenant namespaces, RBAC, quotas, and NetworkPolicies (rendered-tenants/)"
+kubectl --context "${KUBE_CONTEXT}" apply -R -f "${REPO_ROOT}/rendered-tenants"
+
+synthetic_secret() {
+  local ns="$1" name="$2"
+  shift 2
+  kubectl --context "${KUBE_CONTEXT}" -n "${ns}" create secret generic "${name}" "$@" \
+    --dry-run=client -o yaml | kubectl --context "${KUBE_CONTEXT}" apply -f -
+}
 
 echo "==> Provisioning synthetic local placeholder Secrets (never real credentials)"
-for ns in staging prod; do
-  kubectl --context "${KUBE_CONTEXT}" -n "${ns}" create secret generic payments-db-credentials \
+for env in staging prod; do
+  synthetic_secret "payments-team-${env}" payments-db-credentials \
     --from-literal=SYNTHETIC_DB_USER="local-synthetic-user" \
-    --from-literal=SYNTHETIC_DB_DSN="postgres://local-placeholder:5432/payments" \
-    --dry-run=client -o yaml | kubectl --context "${KUBE_CONTEXT}" apply -f -
-
-  kubectl --context "${KUBE_CONTEXT}" -n "${ns}" create secret generic payments-signing-keys \
-    --from-literal=SYNTHETIC_SIGNING_KEY_ID="local-placeholder-key-01" \
-    --dry-run=client -o yaml | kubectl --context "${KUBE_CONTEXT}" apply -f -
+    --from-literal=SYNTHETIC_DB_DSN="postgres://local-placeholder:5432/payments"
+  synthetic_secret "payments-team-${env}" payments-signing-keys \
+    --from-literal=SYNTHETIC_SIGNING_KEY_ID="local-placeholder-key-01"
+  synthetic_secret "ledger-team-${env}" ledger-db-credentials \
+    --from-literal=SYNTHETIC_DB_USER="local-synthetic-ledger" \
+    --from-literal=SYNTHETIC_DB_DSN="postgres://local-placeholder:5432/ledger"
 done
 
 if [[ "${WITH_ARGOCD}" == "true" ]]; then
@@ -88,6 +96,8 @@ if [[ "${WITH_ARGOCD}" == "true" ]]; then
   kubectl --context "${KUBE_CONTEXT}" -n argocd rollout status deployment/argocd-server --timeout=300s
   echo "==> Switching Argo CD to annotation-based resource tracking"
   kubectl --context "${KUBE_CONTEXT}" apply -f "${REPO_ROOT}/gitops/argocd/argocd-cm.yaml"
+  echo "==> Applying platform tenants Application"
+  kubectl --context "${KUBE_CONTEXT}" apply -f "${REPO_ROOT}/gitops/argocd/tenants-application.yaml"
   echo "==> Applying GitOps ApplicationSet"
   kubectl --context "${KUBE_CONTEXT}" apply -f "${REPO_ROOT}/gitops/argocd/applicationset.yaml"
 else

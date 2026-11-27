@@ -2,8 +2,9 @@
 set -euo pipefail
 
 KUBE_CONTEXT="kind-idp-local"
-NAMESPACE="prod"
-CLIENT_NS="default"
+NAMESPACE="payments-team-prod"
+# Tenant NetworkPolicy admits same-namespace traffic only, so the client runs beside the service.
+CLIENT_NS="${NAMESPACE}"
 CLIENT_POD="exp02-traffic-client"
 DEPLOYMENT="payments-api"
 SERVICE="payments-api"
